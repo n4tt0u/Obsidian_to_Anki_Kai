@@ -1,10 +1,11 @@
-import { Notice, Plugin, addIcon, TFile, TFolder } from 'obsidian'
+import { Notice, Plugin, addIcon, TFile, TFolder, Menu, TAbstractFile } from 'obsidian'
 import * as AnkiConnect from './src/anki'
 import { PluginSettings, ParsedSettings } from './src/interfaces/settings-interface'
 import { DEFAULT_IGNORED_FILE_GLOBS, SettingsTab } from './src/settings'
 import { ANKI_ICON } from './src/constants'
 import { settingToData } from './src/setting-to-data'
 import { FileManager } from './src/files-manager'
+import { ProgressModal } from './src/ui/ProgressModal'
 
 export default class MyPlugin extends Plugin {
 
@@ -13,6 +14,8 @@ export default class MyPlugin extends Plugin {
 	fields_dict: Record<string, string[]>
 	added_media: string[]
 	file_hashes: Record<string, string>
+	statusBarItem: HTMLElement
+	isSyncing: boolean = false
 
 	async getDefaultSettings(): Promise<PluginSettings> {
 		let settings: PluginSettings = {
@@ -184,42 +187,176 @@ export default class MyPlugin extends Plugin {
 	}
 
 	async scanVault() {
-		new Notice('Scanning vault, check console for details...');
-		console.info("Checking connection to Anki...")
-		try {
-			await AnkiConnect.invoke('modelNames')
-		}
-		catch(e) {
-			new Notice("Error, couldn't connect to Anki! Check console for error message.")
+		await this.syncFiles(null, "vault")
+	}
+
+	async syncCurrentFile() {
+		const activeFile = this.app.workspace.getActiveFile()
+		if (!activeFile) {
+			new Notice("No active file")
 			return
 		}
-		new Notice("Successfully connected to Anki! This could take a few minutes - please don't close Anki until the plugin is finished")
-		const data: ParsedSettings = await settingToData(this.app, this.settings, this.fields_dict)
-		const scanDir = this.app.vault.getAbstractFileByPath(this.settings.Defaults["Scan Directory"])
-		let manager = null;
-		if (scanDir !== null) {
-			let markdownFiles = [];
-			if (scanDir instanceof TFolder) {
-				console.info("Using custom scan directory: " + scanDir.path)
-				markdownFiles = this.getAllTFilesInFolder(scanDir);
-			} else {
-				new Notice("Error: incorrect path for scan directory " + this.settings.Defaults["Scan Directory"])
+		if (activeFile.extension !== 'md') {
+			new Notice("Active file is not a markdown file")
+			return
+		}
+		await this.syncFiles([activeFile], "current file")
+	}
+
+	async syncCurrentFolder() {
+		const activeFile = this.app.workspace.getActiveFile()
+		if (!activeFile) {
+			new Notice("No active file to determine folder")
+			return
+		}
+		const folder = activeFile.parent
+		if (!folder) {
+			new Notice("Could not determine current folder")
+			return
+		}
+		const filesInFolder = this.getAllTFilesInFolder(folder)
+		await this.syncFiles(filesInFolder, `folder: ${folder.path}`)
+	}
+
+	async syncFiles(files: TFile[] | null, scope: string) {
+		if (this.isSyncing) {
+			new Notice("Sync already in progress...")
+			return
+		}
+
+		this.isSyncing = true
+		this.updateStatusBar("syncing")
+
+		const progressModal = new ProgressModal(this.app, () => {
+			this.isSyncing = false
+			this.updateStatusBar("idle")
+		})
+		progressModal.open()
+
+		try {
+			progressModal.setStatus("Checking connection to Anki...")
+			console.info("Checking connection to Anki...")
+
+			try {
+				await AnkiConnect.invoke('modelNames')
+			} catch(e) {
+				new Notice("Error: couldn't connect to Anki! Make sure Anki is running.")
+				console.error(e)
+				progressModal.close()
+				this.isSyncing = false
+				this.updateStatusBar("error")
 				return
 			}
-			manager = new FileManager(this.app, data, markdownFiles, this.file_hashes, this.added_media)
-		} else {
-			manager = new FileManager(this.app, data, this.app.vault.getMarkdownFiles(), this.file_hashes, this.added_media);
+
+			progressModal.setStatus("Connected to Anki! Preparing files...")
+
+			const data: ParsedSettings = await settingToData(this.app, this.settings, this.fields_dict)
+
+			let filesToSync: TFile[]
+			if (files === null) {
+				// Scan vault or custom directory
+				const scanDir = this.app.vault.getAbstractFileByPath(this.settings.Defaults["Scan Directory"])
+				if (scanDir !== null) {
+					if (scanDir instanceof TFolder) {
+						console.info("Using custom scan directory: " + scanDir.path)
+						filesToSync = this.getAllTFilesInFolder(scanDir)
+					} else {
+						new Notice("Error: incorrect path for scan directory")
+						progressModal.close()
+						this.isSyncing = false
+						this.updateStatusBar("error")
+						return
+					}
+				} else {
+					filesToSync = this.app.vault.getMarkdownFiles()
+				}
+			} else {
+				filesToSync = files
+			}
+
+			progressModal.setStatus(`Syncing ${scope}...`)
+			progressModal.setProgress(0, 1, `Found ${filesToSync.length} file(s)`)
+
+			const manager = new FileManager(this.app, data, filesToSync, this.file_hashes, this.added_media)
+
+			progressModal.setStatus("Scanning files for changes...")
+			await manager.initialiseFiles()
+
+			const changedFilesCount = manager.ownFiles.length
+			if (changedFilesCount === 0) {
+				new Notice("No changes detected!")
+				progressModal.close()
+				this.isSyncing = false
+				this.updateStatusBar("idle")
+				return
+			}
+
+			progressModal.setProgress(1, 2, `Processing ${changedFilesCount} changed file(s)...`)
+
+			await manager.requests_1()
+
+			this.added_media = Array.from(manager.added_media_set)
+			const hashes = manager.getHashes()
+			for (let key in hashes) {
+				this.file_hashes[key] = hashes[key]
+			}
+
+			progressModal.setProgress(2, 2, "Saving changes...")
+			await this.saveAllData()
+
+			progressModal.close()
+			new Notice(`✅ Successfully synced ${changedFilesCount} file(s) to Anki!`)
+			this.updateStatusBar("success")
+
+			// Reset to idle after 3 seconds
+			setTimeout(() => {
+				this.updateStatusBar("idle")
+			}, 3000)
+
+		} catch(e) {
+			console.error("Error during sync:", e)
+			new Notice("Error during sync. Check console for details.")
+			progressModal.close()
+			this.updateStatusBar("error")
+		} finally {
+			this.isSyncing = false
 		}
-		
-		await manager.initialiseFiles()
-		await manager.requests_1()
-		this.added_media = Array.from(manager.added_media_set)
-		const hashes = manager.getHashes()
-		for (let key in hashes) {
-			this.file_hashes[key] = hashes[key]
+	}
+
+	updateStatusBar(state: "idle" | "syncing" | "success" | "error") {
+		if (!this.statusBarItem) return
+
+		this.statusBarItem.empty()
+
+		const container = this.statusBarItem.createDiv({ cls: 'anki-status-bar-item' })
+
+		let icon = "📝"
+		let text = "Anki"
+		let className = ""
+
+		switch(state) {
+			case "syncing":
+				icon = "🔄"
+				text = "Syncing..."
+				className = "anki-status-syncing"
+				break
+			case "success":
+				icon = "✅"
+				text = "Synced"
+				className = "anki-status-success"
+				break
+			case "error":
+				icon = "❌"
+				text = "Error"
+				className = "anki-status-error"
+				break
+			default:
+				icon = "📝"
+				text = "Anki"
 		}
-		new Notice("All done! Saving file hashes and added media now...")
-		this.saveAllData()
+
+		container.createSpan({ text: icon })
+		container.createSpan({ text: text, cls: className })
 	}
 
 	async onload() {
@@ -250,19 +387,66 @@ export default class MyPlugin extends Plugin {
 		this.added_media = await this.loadAddedMedia()
 		this.file_hashes = await this.loadFileHashes()
 
+		// Add status bar
+		this.statusBarItem = this.addStatusBarItem()
+		this.updateStatusBar("idle")
+
 		this.addSettingTab(new SettingsTab(this.app, this));
 
-		this.addRibbonIcon('anki', 'Obsidian_to_Anki - Scan Vault', async () => {
+		this.addRibbonIcon('anki', 'Obsidian_to_Anki - Sync Vault', async () => {
 			await this.scanVault()
 		})
 
+		// Commands
 		this.addCommand({
-			id: 'anki-scan-vault',
-			name: 'Scan Vault',
+			id: 'anki-sync-vault',
+			name: 'Sync Entire Vault',
 			callback: async () => {
-			 	await this.scanVault()
-			 }
+				await this.scanVault()
+			}
 		})
+
+		this.addCommand({
+			id: 'anki-sync-current-file',
+			name: 'Sync Current File',
+			callback: async () => {
+				await this.syncCurrentFile()
+			}
+		})
+
+		this.addCommand({
+			id: 'anki-sync-current-folder',
+			name: 'Sync Current Folder',
+			callback: async () => {
+				await this.syncCurrentFolder()
+			}
+		})
+
+		// Context menu for files
+		this.registerEvent(
+			this.app.workspace.on('file-menu', (menu: Menu, file: TAbstractFile) => {
+				if (file instanceof TFile && file.extension === 'md') {
+					menu.addItem((item) => {
+						item
+							.setTitle('Sync to Anki')
+							.setIcon('anki')
+							.onClick(async () => {
+								await this.syncFiles([file], `file: ${file.name}`)
+							})
+					})
+				} else if (file instanceof TFolder) {
+					menu.addItem((item) => {
+						item
+							.setTitle('Sync Folder to Anki')
+							.setIcon('anki')
+							.onClick(async () => {
+								const filesInFolder = this.getAllTFilesInFolder(file)
+								await this.syncFiles(filesInFolder, `folder: ${file.path}`)
+							})
+					})
+				}
+			})
+		)
 	}
 
 	async onunload() {
