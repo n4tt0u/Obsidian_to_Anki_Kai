@@ -51,7 +51,7 @@ export default class MyPlugin extends Plugin {
 				"CurlyCloze - Keyword": "Cloze",
 				"Smart Scan": true,
 				"Add Obsidian YAML Tags": false,
-				"Experimental: Bulk Delete IDs": false
+				"Bulk Delete IDs": false
 			},
 			IGNORED_FILE_GLOBS: DEFAULT_IGNORED_FILE_GLOBS,
 		}
@@ -478,7 +478,7 @@ export default class MyPlugin extends Plugin {
 							})
 					})
 					// Check if experimental feature is enabled
-					if (this.settings.Defaults["Experimental: Bulk Delete IDs"]) {
+					if (this.settings.Defaults["Bulk Delete IDs"]) {
 						menu.addItem((item) => {
 							item
 								.setTitle('Delete all IDs in file')

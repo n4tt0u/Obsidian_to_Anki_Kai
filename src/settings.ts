@@ -20,7 +20,7 @@ const defaultDescs = {
 	"Add Obsidian Tags": "Interpret #tags in the fields of a note as Anki tags, removing them from the note text in Anki.",
 	"Add Obsidian YAML Tags": "Send tags defined in YAML frontmatter to Anki.",
 	"Smart Scan": "Skip files that haven't changed since the last scan (based on MD5 hash). Disable to force a full scan.",
-	"Experimental: Bulk Delete IDs": "Enables 'Delete all IDs in file' menu. Deletes Anki notes for IDs found in the selected file and removes the IDs."
+	"Bulk Delete IDs": "Enables 'Delete all IDs in file' menu. Deletes Anki notes for IDs found in the selected file and removes the IDs."
 }
 
 export const DEFAULT_IGNORED_FILE_GLOBS = [
@@ -155,13 +155,13 @@ export class SettingsTab extends PluginSettingTab {
 		if (!(plugin.settings["Defaults"].hasOwnProperty("Add Obsidian YAML Tags"))) {
 			plugin.settings["Defaults"]["Add Obsidian YAML Tags"] = false
 		}
-		if (!(plugin.settings["Defaults"].hasOwnProperty("Experimental: Bulk Delete IDs"))) {
-			plugin.settings["Defaults"]["Experimental: Bulk Delete IDs"] = false
+		if (!(plugin.settings["Defaults"].hasOwnProperty("Bulk Delete IDs"))) {
+			plugin.settings["Defaults"]["Bulk Delete IDs"] = false
 		}
 
 		for (let key of Object.keys(defaultDescs)) {
 			// Skip Scan Directory (already added above) and Regex
-			if (key === "Scan Directory" || key === "Scan Tags" || key === "Regex") {
+			if (key === "Scan Directory" || key === "Scan Tags" || key === "Regex" || key === "Bulk Delete IDs") {
 				continue
 			}
 
@@ -330,6 +330,18 @@ export class SettingsTab extends PluginSettingTab {
 
 		container.createEl('h3', { text: 'Import/Export Settings', cls: 'anki-settings-section' })
 		this.setup_import_export(container, plugin)
+
+		container.createEl('h3', { text: 'Experimental Features', cls: 'anki-settings-section' })
+		new Setting(container)
+			.setName("Bulk Delete IDs")
+			.setDesc(defaultDescs["Bulk Delete IDs"])
+			.addToggle(toggle => toggle
+				.setValue(plugin.settings.Defaults["Bulk Delete IDs"])
+				.onChange((value) => {
+					plugin.settings.Defaults["Bulk Delete IDs"] = value
+					plugin.saveAllData()
+				})
+			)
 	}
 
 	private setup_ignore_files(container: HTMLElement, plugin: any) {

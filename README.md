@@ -67,7 +67,7 @@ You can now control the formatting of the file link.
 
 A feature to bulk delete Anki cards associated with a specific file.
 
-- **Enable**: Go to Settings -> General and toggle "Experimental: Bulk Delete IDs".
+- **Enable**: Go to Settings -> Advanced and toggle "Bulk Delete IDs" in the "Experimental Features" section.
 - **Usage**: Right-click on a Markdown file in the file explorer and select "**Delete all IDs in file**".
 - **Effect**: This will:
     1. Delete the corresponding cards/notes from Anki.
