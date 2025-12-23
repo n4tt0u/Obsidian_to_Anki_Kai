@@ -33,5 +33,14 @@ Previously hardcoded to "Cloze", you can now set any keyword (e.g., "穴埋め")
 The plugin automatically skips files that haven't changed since the last scan (using MD5 hashes) to improve performance.
 You can now disable this feature in the "General" settings (toggle "Smart Scan" off) to force a full re-scan of all files.
 
+### Extended Tag Support (Add Obsidian Tags)
+
+The "Add Obsidian Tags" feature now supports a wider range of characters.
+It correctly identifies and processes tags containing:
+
+- **Japanese/Unicode characters** (e.g., `#重要`)
+- **Nested tags** (e.g., `#parent/child`)
+- **Hyphens** (e.g., `#my-tag`)
+
 ---
 For basic usage and configurations, please refer to the [Original Wiki](https://github.com/Pseudonium/Obsidian_to_Anki/wiki).
