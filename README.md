@@ -42,9 +42,9 @@ It correctly identifies and processes tags containing:
 - **Nested tags** (e.g., `#parent/child`)
 - **Hyphens** (e.g., `#my-tag`)
 
-### YAML Tags
+### Add Obsidian YAML Tags
 
-Enable the "YAML Tags" setting in the "General" tab to automatically send tags defined in the Obsidian YAML frontmatter (Properties) to Anki.
+Enable the "Add Obsidian YAML Tags" setting in the "General" tab to automatically send tags defined in the Obsidian YAML frontmatter (Properties) to Anki.
 These tags are **added** to any existing inline or global tags.
 Supported formats:
 

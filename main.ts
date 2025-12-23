@@ -50,7 +50,7 @@ export default class MyPlugin extends Plugin {
 				"Add Obsidian Tags": false,
 				"CurlyCloze - Keyword": "Cloze",
 				"Smart Scan": true,
-				"YAML Tags": false,
+				"Add Obsidian YAML Tags": false,
 				"Experimental: Bulk Delete IDs": false
 			},
 			IGNORED_FILE_GLOBS: DEFAULT_IGNORED_FILE_GLOBS,

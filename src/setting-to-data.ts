@@ -45,7 +45,7 @@ export async function settingToData(app: App, settings: PluginSettings, fields_d
     result.add_obs_tags = settings.Defaults["Add Obsidian Tags"]
     result.cloze_keyword = settings.Defaults["CurlyCloze - Keyword"]
     result.smart_scan = settings.Defaults["Smart Scan"]
-    result.yaml_tags = settings.Defaults["YAML Tags"]
+    result.yaml_tags = settings.Defaults["Add Obsidian YAML Tags"]
     result.ignored_file_globs = settings.IGNORED_FILE_GLOBS ?? [];
 
     return result

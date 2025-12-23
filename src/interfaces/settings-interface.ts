@@ -32,7 +32,7 @@ export interface PluginSettings {
 		"Add Obsidian Tags": boolean,
 		"CurlyCloze - Keyword": string,
 		"Smart Scan": boolean,
-		"YAML Tags": boolean,
+		"Add Obsidian YAML Tags": boolean,
 		"Experimental: Bulk Delete IDs": boolean
 	},
 	IGNORED_FILE_GLOBS: string[]

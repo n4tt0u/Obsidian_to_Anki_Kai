@@ -18,7 +18,7 @@ const defaultDescs = {
 	"CurlyCloze - Highlights to Clozes": "Convert ==highlights== -> {highlights} to be processed by CurlyCloze.",
 	"ID Comments": "Wrap note IDs in a HTML comment.",
 	"Add Obsidian Tags": "Interpret #tags in the fields of a note as Anki tags, removing them from the note text in Anki.",
-	"YAML Tags": "Send tags defined in YAML frontmatter to Anki.",
+	"Add Obsidian YAML Tags": "Send tags defined in YAML frontmatter to Anki.",
 	"Smart Scan": "Skip files that haven't changed since the last scan (based on MD5 hash). Disable to force a full scan.",
 	"Experimental: Bulk Delete IDs": "Enables 'Delete all IDs in file' menu. Deletes Anki notes for IDs found in the selected file and removes the IDs."
 }
@@ -152,8 +152,8 @@ export class SettingsTab extends PluginSettingTab {
 		if (!(plugin.settings["Defaults"].hasOwnProperty("Smart Scan"))) {
 			plugin.settings["Defaults"]["Smart Scan"] = true
 		}
-		if (!(plugin.settings["Defaults"].hasOwnProperty("YAML Tags"))) {
-			plugin.settings["Defaults"]["YAML Tags"] = false
+		if (!(plugin.settings["Defaults"].hasOwnProperty("Add Obsidian YAML Tags"))) {
+			plugin.settings["Defaults"]["Add Obsidian YAML Tags"] = false
 		}
 		if (!(plugin.settings["Defaults"].hasOwnProperty("Experimental: Bulk Delete IDs"))) {
 			plugin.settings["Defaults"]["Experimental: Bulk Delete IDs"] = false
