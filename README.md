@@ -83,6 +83,10 @@ You can filter which files to scan based on their tags (both inline `#tags` and 
 In the "General" settings -> "Scan Tags", enter tags separated by commas (e.g., `anki, flashcards`).
 If set, only files containing at least one of the specified tags will be processed. Leave empty to scan all files in the "Scan Directory".
 
+> [!NOTE]
+> This setting only applies to the **Vault Scan** or **Auto Scan**.
+> If you right-click a file and select "Sync to Anki", it will be **forcefully synced** regardless of whether it matches the "Scan Tags".
+
 ### Add File Link Improvements
 
 You can now control the formatting of the file link.
