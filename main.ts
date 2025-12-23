@@ -6,6 +6,7 @@ import { ANKI_ICON } from './src/constants'
 import { settingToData } from './src/setting-to-data'
 import { FileManager } from './src/files-manager'
 import { ProgressModal } from './src/ui/ProgressModal'
+import { checkAndBulkDelete } from './src/bulk-delete'
 
 export default class MyPlugin extends Plugin {
 
@@ -48,7 +49,8 @@ export default class MyPlugin extends Plugin {
 				"Add Obsidian Tags": false,
 				"CurlyCloze - Keyword": "Cloze",
 				"Smart Scan": true,
-				"YAML Tags": false
+				"YAML Tags": false,
+				"Experimental: Bulk Delete IDs": false
 			},
 			IGNORED_FILE_GLOBS: DEFAULT_IGNORED_FILE_GLOBS,
 		}
@@ -438,6 +440,18 @@ export default class MyPlugin extends Plugin {
 								await this.syncFiles([file], `file: ${file.name}`)
 							})
 					})
+					// Check if experimental feature is enabled
+					if (this.settings.Defaults["Experimental: Bulk Delete IDs"]) {
+						menu.addItem((item) => {
+							item
+								.setTitle('Delete all IDs in file')
+								.setIcon('trash')
+								.onClick(async () => {
+									await checkAndBulkDelete(this.app, file)
+								});
+							(item as any).setWarning(true);
+						})
+					}
 				} else if (file instanceof TFolder) {
 					menu.addItem((item) => {
 						item

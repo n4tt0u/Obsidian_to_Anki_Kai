@@ -57,5 +57,17 @@ You can now control the formatting of the file link.
 
 - **Add File Link - Insert Newline**: Toggle whether to insert a newline (`<br>`) before the link.
 
+### Bulk Delete IDs (Experimental)
+
+A feature to bulk delete Anki cards associated with a specific file.
+
+- **Enable**: Go to Settings -> General and toggle "Experimental: Bulk Delete IDs".
+- **Usage**: Right-click on a Markdown file in the file explorer and select "**Delete all IDs in file**".
+- **Effect**: This will:
+    1. Delete the corresponding cards/notes from Anki.
+    2. Remove the ID lines (`ID: ...` or `<!--ID: ...-->`) from the Obsidian file.
+    3. **Note**: The content of the notes in Obsidian will be preserved.
+- **Warning**: This action is destructive to Anki data. A confirmation dialog will be shown before execution.
+
 ---
 For basic usage and configurations, please refer to the [Original Wiki](https://github.com/Pseudonium/Obsidian_to_Anki/wiki).
