@@ -37,6 +37,7 @@ export default class MyPlugin extends Plugin {
 			},
 			Defaults: {
 				"Scan Directory": "",
+				"Scan Tags": "",
 				"Tag": "Obsidian_to_Anki",
 				"Deck": "Default",
 				"Scheduling Interval": 0,
@@ -278,6 +279,42 @@ export default class MyPlugin extends Plugin {
 				}
 			} else {
 				filesToSync = files
+			}
+
+			// Filter by Scan Tags
+			const scanTagsSetting = this.settings.Defaults["Scan Tags"]
+			if (scanTagsSetting && scanTagsSetting.trim().length > 0) {
+				const scanTags = scanTagsSetting.split(',').map(t => t.trim()).filter(t => t.length > 0)
+				if (scanTags.length > 0) {
+					console.info(`Filtering files by tags: ${scanTags.join(', ')}`)
+					filesToSync = filesToSync.filter(file => {
+						const cache = this.app.metadataCache.getFileCache(file)
+						if (!cache) return false
+
+						// Check frontmatter tags
+						const frontmatterTags = cache.frontmatter?.tags
+						if (frontmatterTags) {
+							if (Array.isArray(frontmatterTags)) {
+								if (frontmatterTags.some(tag => scanTags.includes(tag))) return true
+							} else if (typeof frontmatterTags === 'string') {
+								// Handle case where tags might be a comma-separated string in YAML
+								const fileTags = frontmatterTags.split(',').map(t => t.trim())
+								if (fileTags.some(tag => scanTags.includes(tag))) return true
+							}
+						}
+
+						// Check inline tags (#tag)
+						const inlineTags = cache.tags
+						if (inlineTags) {
+							if (inlineTags.some(tagCache => {
+								const tagName = tagCache.tag.replace('#', '')
+								return scanTags.includes(tagName)
+							})) return true
+						}
+
+						return false
+					})
+				}
 			}
 
 			progressModal.setStatus(`Syncing ${scope}...`)

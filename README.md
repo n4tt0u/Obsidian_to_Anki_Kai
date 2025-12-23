@@ -51,6 +51,12 @@ Supported formats:
 - List: `tags: \n  - tag1`
 - Array: `tags: [tag1, tag2]`
 
+### Scan Tags
+
+You can filter which files to scan based on their tags (both inline `#tags` and Frontmatter tags).
+In the "General" settings -> "Scan Tags", enter tags separated by commas (e.g., `anki, flashcards`).
+If set, only files containing at least one of the specified tags will be processed. Leave empty to scan all files in the "Scan Directory".
+
 ### Add File Link Improvements
 
 You can now control the formatting of the file link.

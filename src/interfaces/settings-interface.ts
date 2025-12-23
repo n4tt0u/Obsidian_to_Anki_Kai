@@ -19,6 +19,7 @@ export interface PluginSettings {
 	},
 	Defaults: {
 		"Scan Directory": string,
+		"Scan Tags": string,
 		"Tag": string,
 		"Deck": string,
 		"Scheduling Interval": number

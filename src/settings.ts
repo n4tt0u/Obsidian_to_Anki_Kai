@@ -6,6 +6,7 @@ import { FolderSuggestModal, getAllFolders } from './ui/FolderSuggester'
 
 const defaultDescs = {
 	"Scan Directory": "The directory to scan. Leave empty to scan the entire vault",
+	"Scan Tags": "The tags to scan. Leave empty to scan all files. Separate multiple tags with commas.",
 	"Tag": "The tag that the plugin automatically adds to any generated cards.",
 	"Deck": "The deck the plugin adds cards to if TARGET DECK is not specified in the file.",
 	"Scheduling Interval": "The time, in minutes, between automatic scans of the vault. Set this to 0 to disable automatic scanning.",
@@ -102,6 +103,18 @@ export class SettingsTab extends PluginSettingTab {
 			}).open()
 		})
 
+		// Scan Tags
+		new Setting(container)
+			.setName('Scan Tags')
+			.setDesc(defaultDescs['Scan Tags'])
+			.addText(text => text
+				.setPlaceholder('tag1, tag2')
+				.setValue(plugin.settings.Defaults["Scan Tags"] || '')
+				.onChange((value) => {
+					plugin.settings.Defaults["Scan Tags"] = value
+					plugin.saveAllData()
+				}))
+
 		// Other defaults
 		this.addDefaultSettings(container, plugin)
 
@@ -114,6 +127,9 @@ export class SettingsTab extends PluginSettingTab {
 		// To account for new settings
 		if (!(plugin.settings["Defaults"].hasOwnProperty("Scan Directory"))) {
 			plugin.settings["Defaults"]["Scan Directory"] = ""
+		}
+		if (!(plugin.settings["Defaults"].hasOwnProperty("Scan Tags"))) {
+			plugin.settings["Defaults"]["Scan Tags"] = ""
 		}
 		if (!(plugin.settings["Defaults"].hasOwnProperty("Add Context"))) {
 			plugin.settings["Defaults"]["Add Context"] = false
@@ -145,7 +161,7 @@ export class SettingsTab extends PluginSettingTab {
 
 		for (let key of Object.keys(defaultDescs)) {
 			// Skip Scan Directory (already added above) and Regex
-			if (key === "Scan Directory" || key === "Regex") {
+			if (key === "Scan Directory" || key === "Scan Tags" || key === "Regex") {
 				continue
 			}
 
