@@ -25,7 +25,7 @@ export async function settingToData(app: App, settings: PluginSettings, fields_d
         },
         tags: [settings.Defaults.Tag]
     }
-    result.EXISTING_IDS = await AnkiConnect.invoke('findNotes', {query: ""}) as number[]
+    result.EXISTING_IDS = await AnkiConnect.invoke('findNotes', { query: "" }) as number[]
 
     //RegExp section
     result.FROZEN_REGEXP = new RegExp(escapeRegex(settings.Syntax["Frozen Fields Line"]) + String.raw` - (.*?):\n((?:[^\n][\n]?)+)`, "g")
@@ -42,6 +42,7 @@ export async function settingToData(app: App, settings: PluginSettings, fields_d
     result.comment = settings.Defaults["ID Comments"]
     result.add_context = settings.Defaults["Add Context"]
     result.add_obs_tags = settings.Defaults["Add Obsidian Tags"]
+    result.cloze_keyword = settings.Defaults["CurlyCloze - Keyword"]
     result.ignored_file_globs = settings.IGNORED_FILE_GLOBS ?? [];
 
     return result

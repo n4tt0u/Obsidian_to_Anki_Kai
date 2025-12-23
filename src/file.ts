@@ -12,7 +12,7 @@ import { CachedMetadata, HeadingCache } from 'obsidian'
 
 const double_regexp: RegExp = /(?:\r\n|\r|\n)((?:\r\n|\r|\n)(?:<!--)?ID: \d+)/g
 
-function id_to_str(identifier:number, inline:boolean = false, comment:boolean = false): string {
+function id_to_str(identifier: number, inline: boolean = false, comment: boolean = false): string {
     let result = "ID: " + identifier.toString()
     if (comment) {
         result = "<!--" + result + "-->"
@@ -26,47 +26,47 @@ function id_to_str(identifier:number, inline:boolean = false, comment:boolean = 
 }
 
 function string_insert(text: string, position_inserts: Array<[number, string]>): string {
-	/*Insert strings in position_inserts into text, at indices.
+    /*Insert strings in position_inserts into text, at indices.
 
     position_inserts will look like:
     [(0, "hi"), (3, "hello"), (5, "beep")]*/
-	let offset = 0
-	let sorted_inserts: Array<[number, string]> = position_inserts.sort((a, b):number => a[0] - b[0])
-	for (let insertion of sorted_inserts) {
-		let position = insertion[0]
-		let insert_str = insertion[1]
-		text = text.slice(0, position + offset) + insert_str + text.slice(position + offset)
-		offset += insert_str.length
-	}
-	return text
+    let offset = 0
+    let sorted_inserts: Array<[number, string]> = position_inserts.sort((a, b): number => a[0] - b[0])
+    for (let insertion of sorted_inserts) {
+        let position = insertion[0]
+        let insert_str = insertion[1]
+        text = text.slice(0, position + offset) + insert_str + text.slice(position + offset)
+        offset += insert_str.length
+    }
+    return text
 }
 
 function spans(pattern: RegExp, text: string): Array<[number, number]> {
-	/*Return a list of span-tuples for matches of pattern in text.*/
-	let output: Array<[number, number]> = []
-	let matches = text.matchAll(pattern)
-	for (let match of matches) {
-		output.push(
-			[match.index, match.index + match[0].length]
-		)
-	}
-	return output
+    /*Return a list of span-tuples for matches of pattern in text.*/
+    let output: Array<[number, number]> = []
+    let matches = text.matchAll(pattern)
+    for (let match of matches) {
+        output.push(
+            [match.index, match.index + match[0].length]
+        )
+    }
+    return output
 }
 
 function contained_in(span: [number, number], spans: Array<[number, number]>): boolean {
-	/*Return whether span is contained in spans (+- 1 leeway)*/
-	return spans.some(
-		(element) => span[0] >= element[0] - 1 && span[1] <= element[1] + 1
-	)
+    /*Return whether span is contained in spans (+- 1 leeway)*/
+    return spans.some(
+        (element) => span[0] >= element[0] - 1 && span[1] <= element[1] + 1
+    )
 }
 
 function* findignore(pattern: RegExp, text: string, ignore_spans: Array<[number, number]>): IterableIterator<RegExpMatchArray> {
-	let matches = text.matchAll(pattern)
-	for (let match of matches) {
-		if (!(contained_in([match.index, match.index + match[0].length], ignore_spans))) {
-			yield match
-		}
-	}
+    let matches = text.matchAll(pattern)
+    for (let match of matches) {
+        if (!(contained_in([match.index, match.index + match[0].length], ignore_spans))) {
+            yield match
+        }
+    }
 }
 
 abstract class AbstractFile {
@@ -93,7 +93,7 @@ abstract class AbstractFile {
 
     formatter: FormatConverter
 
-    constructor(file_contents: string, path:string, url: string, data: FileData, file_cache: CachedMetadata) {
+    constructor(file_contents: string, path: string, url: string, data: FileData, file_cache: CachedMetadata) {
         this.data = data
         this.file = file_contents
         this.path = path
@@ -121,7 +121,8 @@ abstract class AbstractFile {
                 this.data.fields_dict,
                 this.data.curly_cloze,
                 this.data.highlights_to_cloze,
-                this.formatter
+                this.formatter,
+                this.data.cloze_keyword
             ).getFields()
             frozen_fields_dict[note_type] = parsed_fields
         }
@@ -187,7 +188,7 @@ abstract class AbstractFile {
         this.file = this.file.replace(this.data.EMPTY_REGEXP, "")
     }
 
-    getCreateDecks(): AnkiConnect.AnkiConnectRequest {        
+    getCreateDecks(): AnkiConnect.AnkiConnectRequest {
         let actions: AnkiConnect.AnkiConnectRequest[] = []
         for (let note of this.all_notes_to_add) {
             actions.push(AnkiConnect.createDeck(note.deckName))
@@ -259,7 +260,7 @@ export class AllFile extends AbstractFile {
     regex_notes_to_add: AnkiConnectNote[]
     regex_id_indexes: number[]
 
-    constructor(file_contents: string, path:string, url: string, data: FileData, file_cache: CachedMetadata) {
+    constructor(file_contents: string, path: string, url: string, data: FileData, file_cache: CachedMetadata) {
         super(file_contents, path, url, data, file_cache)
         this.custom_regexps = data.custom_regexps
     }
@@ -307,7 +308,8 @@ export class AllFile extends AbstractFile {
                 this.data.fields_dict,
                 this.data.curly_cloze,
                 this.data.highlights_to_cloze,
-                this.formatter
+                this.formatter,
+                this.data.cloze_keyword
             ).parse(
                 this.target_deck,
                 this.url,
@@ -345,7 +347,8 @@ export class AllFile extends AbstractFile {
                 this.data.fields_dict,
                 this.data.curly_cloze,
                 this.data.highlights_to_cloze,
-                this.formatter
+                this.formatter,
+                this.data.cloze_keyword
             ).parse(
                 this.target_deck,
                 this.url,
@@ -383,7 +386,7 @@ export class AllFile extends AbstractFile {
                     this.ignore_spans.push([match.index, match.index + match[0].length])
                     const parsed: AnkiConnectNoteAndID = new RegexNote(
                         match, note_type, this.data.fields_dict,
-                        search_tags, search_id, this.data.curly_cloze, this.data.highlights_to_cloze, this.formatter
+                        search_tags, search_id, this.data.curly_cloze, this.data.highlights_to_cloze, this.formatter, this.data.cloze_keyword
                     ).parse(
                         this.target_deck,
                         this.url,

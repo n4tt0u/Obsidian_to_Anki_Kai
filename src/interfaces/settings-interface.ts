@@ -27,7 +27,8 @@ export interface PluginSettings {
 		"CurlyCloze": boolean,
 		"CurlyCloze - Highlights to Clozes": boolean,
 		"ID Comments": boolean,
-		"Add Obsidian Tags": boolean
+		"Add Obsidian Tags": boolean,
+		"CurlyCloze - Keyword": string
 	},
 	IGNORED_FILE_GLOBS:string[]
 }
@@ -54,6 +55,7 @@ export interface FileData {
 	comment: boolean
 	add_context: boolean
 	add_obs_tags: boolean
+	cloze_keyword: string
 }
 
 export interface ParsedSettings extends FileData {

@@ -23,5 +23,10 @@ Merged [PR #673](https://github.com/ObsidianToAnki/Obsidian_to_Anki/pull/673) wh
 - **Progress Modal**: Real-time status updates during sync.
 - **Status Bar**: Visual indicator of sync state.
 
+### Configurable CurlyCloze Keyword
+
+The keyword used to identify Cloze Note Types for CurlyCloze syntax (`{...}` -> `{{c1::...}}`) is now configurable.
+Previously hardcoded to "Cloze", you can now set any keyword (e.g., "穴埋め") in the "CurlyCloze - Keyword" setting to support localized note type names.
+
 ---
 For basic usage and configurations, please refer to the [Original Wiki](https://github.com/Pseudonium/Obsidian_to_Anki/wiki).

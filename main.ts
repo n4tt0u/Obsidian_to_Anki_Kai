@@ -45,6 +45,7 @@ export default class MyPlugin extends Plugin {
 				"CurlyCloze - Highlights to Clozes": false,
 				"ID Comments": true,
 				"Add Obsidian Tags": false,
+				"CurlyCloze - Keyword": "Cloze",
 			},
 			IGNORED_FILE_GLOBS: DEFAULT_IGNORED_FILE_GLOBS,
 		}
@@ -54,7 +55,7 @@ export default class MyPlugin extends Plugin {
 		for (let note_type of this.note_types) {
 			settings["CUSTOM_REGEXPS"][note_type] = ""
 			const field_names: string[] = await AnkiConnect.invoke(
-				'modelFieldNames', {modelName: note_type}
+				'modelFieldNames', { modelName: note_type }
 			) as string[]
 			this.fields_dict[note_type] = field_names
 			settings["FILE_LINK_FIELDS"][note_type] = field_names[0]
@@ -66,7 +67,7 @@ export default class MyPlugin extends Plugin {
 		let fields_dict = {}
 		for (let note_type of this.note_types) {
 			const field_names: string[] = await AnkiConnect.invoke(
-				'modelFieldNames', {modelName: note_type}
+				'modelFieldNames', { modelName: note_type }
 			) as string[]
 			fields_dict[note_type] = field_names
 		}
@@ -137,12 +138,12 @@ export default class MyPlugin extends Plugin {
 
 	async saveAllData(): Promise<void> {
 		this.saveData(
-				{
-					settings: this.settings,
-					"Added Media": this.added_media,
-					"File Hashes": this.file_hashes,
-					fields_dict: this.fields_dict
-				}
+			{
+				settings: this.settings,
+				"Added Media": this.added_media,
+				"File Hashes": this.file_hashes,
+				fields_dict: this.fields_dict
+			}
 		)
 	}
 
@@ -239,7 +240,7 @@ export default class MyPlugin extends Plugin {
 
 			try {
 				await AnkiConnect.invoke('modelNames')
-			} catch(e) {
+			} catch (e) {
 				new Notice("Error: couldn't connect to Anki! Make sure Anki is running.")
 				console.error(e)
 				progressModal.close()
@@ -313,7 +314,7 @@ export default class MyPlugin extends Plugin {
 				this.updateStatusBar("idle")
 			}, 3000)
 
-		} catch(e) {
+		} catch (e) {
 			console.error("Error during sync:", e)
 			new Notice("Error during sync. Check console for details.")
 			progressModal.close()
@@ -334,7 +335,7 @@ export default class MyPlugin extends Plugin {
 		let text = "Anki"
 		let className = ""
 
-		switch(state) {
+		switch (state) {
 			case "syncing":
 				icon = "🔄"
 				text = "Syncing..."
@@ -366,7 +367,7 @@ export default class MyPlugin extends Plugin {
 		try {
 			this.settings = await this.loadSettings()
 		}
-		catch(e) {
+		catch (e) {
 			new Notice("Couldn't connect to Anki! Check console for error message.")
 			return
 		}
@@ -379,7 +380,7 @@ export default class MyPlugin extends Plugin {
 				this.fields_dict = await this.generateFieldsDict()
 				new Notice("Fields dictionary successfully generated!")
 			}
-			catch(e) {
+			catch (e) {
 				new Notice("Couldn't connect to Anki! Check console for error message.")
 				return
 			}
