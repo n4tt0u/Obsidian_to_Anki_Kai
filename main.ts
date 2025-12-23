@@ -40,6 +40,7 @@ export default class MyPlugin extends Plugin {
 				"Deck": "Default",
 				"Scheduling Interval": 0,
 				"Add File Link": false,
+				"Add File Link - Insert Newline": true,
 				"Add Context": false,
 				"CurlyCloze": false,
 				"CurlyCloze - Highlights to Clozes": false,

@@ -51,5 +51,11 @@ Supported formats:
 - List: `tags: \n  - tag1`
 - Array: `tags: [tag1, tag2]`
 
+### Add File Link Improvements
+
+You can now control the formatting of the file link.
+
+- **Add File Link - Insert Newline**: Toggle whether to insert a newline (`<br>`) before the link.
+
 ---
 For basic usage and configurations, please refer to the [Original Wiki](https://github.com/Pseudonium/Obsidian_to_Anki/wiki).

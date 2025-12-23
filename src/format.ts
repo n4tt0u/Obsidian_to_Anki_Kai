@@ -6,20 +6,20 @@ import * as c from './constants'
 
 import showdownHighlight from 'showdown-highlight'
 
-const ANKI_MATH_REGEXP:RegExp = /(\\\[[\s\S]*?\\\])|(\\\([\s\S]*?\\\))/g
-const HIGHLIGHT_REGEXP:RegExp = /==(.*?)==/g
+const ANKI_MATH_REGEXP: RegExp = /(\\\[[\s\S]*?\\\])|(\\\([\s\S]*?\\\))/g
+const HIGHLIGHT_REGEXP: RegExp = /==(.*?)==/g
 
-const MATH_REPLACE:string = "OBSTOANKIMATH"
-const INLINE_CODE_REPLACE:string = "OBSTOANKICODEINLINE"
-const DISPLAY_CODE_REPLACE:string = "OBSTOANKICODEDISPLAY"
+const MATH_REPLACE: string = "OBSTOANKIMATH"
+const INLINE_CODE_REPLACE: string = "OBSTOANKICODEINLINE"
+const DISPLAY_CODE_REPLACE: string = "OBSTOANKICODEDISPLAY"
 
-const CLOZE_REGEXP:RegExp = /(?:(?<!{){(?:c?(\d+)[:|])?(?!{))((?:[^\n][\n]?)+?)(?:(?<!})}(?!}))/g
+const CLOZE_REGEXP: RegExp = /(?:(?<!{){(?:c?(\d+)[:|])?(?!{))((?:[^\n][\n]?)+?)(?:(?<!})}(?!}))/g
 
 const IMAGE_EXTS: string[] = [".png", ".jpg", ".jpeg", ".gif", ".bmp", ".svg", ".tiff"]
 const AUDIO_EXTS: string[] = [".wav", ".m4a", ".flac", ".mp3", ".wma", ".aac", ".webm"]
 
-const PARA_OPEN:string = "<p>"
-const PARA_CLOSE:string = "</p>"
+const PARA_OPEN: string = "<p>"
+const PARA_CLOSE: string = "</p>"
 
 let cloze_unset_num: number = 1
 
@@ -33,13 +33,13 @@ let converter: Converter = new Converter({
 })
 
 function escapeHtml(unsafe: string): string {
-    return unsafe
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
- }
+	return unsafe
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
+}
 
 export class FormatConverter {
 
@@ -54,11 +54,12 @@ export class FormatConverter {
 	}
 
 	getUrlFromLink(link: string): string {
-        return "obsidian://open?vault=" + encodeURIComponent(this.vault_name) + String.raw`&file=` + encodeURIComponent(link)
-    }
+		return "obsidian://open?vault=" + encodeURIComponent(this.vault_name) + String.raw`&file=` + encodeURIComponent(link)
+	}
 
-	format_note_with_url(note: AnkiConnectNote, url: string, field: string): void {
-		note.fields[field] += '<br><a href="' + url + '" class="obsidian-link">Obsidian</a>'
+	format_note_with_url(note: AnkiConnectNote, url: string, field: string, newline: boolean = true): void {
+		let prefix = newline ? '<br>' : '';
+		note.fields[field] += prefix + '<a href="' + url + '" class="obsidian-link">Obsidian</a>'
 	}
 
 	format_note_with_frozen_fields(note: AnkiConnectNote, frozen_fields_dict: Record<string, Record<string, string>>): void {
@@ -69,7 +70,7 @@ export class FormatConverter {
 
 	obsidian_to_anki_math(note_text: string): string {
 		return note_text.replace(
-				c.OBS_DISPLAY_MATH_REGEXP, "\\[$1\\]"
+			c.OBS_DISPLAY_MATH_REGEXP, "\\[$1\\]"
 		).replace(
 			c.OBS_INLINE_MATH_REGEXP,
 			"\\($1\\)"
@@ -134,7 +135,7 @@ export class FormatConverter {
 		return [note_text.replace(regexp, mask), matches]
 	}
 
-	decensor(note_text: string, mask:string, replacements: string[], escape: boolean): string {
+	decensor(note_text: string, mask: string, replacements: string[], escape: boolean): string {
 		for (let replacement of replacements) {
 			note_text = note_text.replace(
 				mask, escape ? escapeHtml(replacement) : replacement

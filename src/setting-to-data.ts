@@ -12,6 +12,7 @@ export async function settingToData(app: App, settings: PluginSettings, fields_d
     result.fields_dict = fields_dict
     result.custom_regexps = settings.CUSTOM_REGEXPS
     result.file_link_fields = settings.FILE_LINK_FIELDS
+    result.file_link_newline = settings.Defaults["Add File Link - Insert Newline"]
     result.context_fields = settings.CONTEXT_FIELDS
     result.folder_decks = settings.FOLDER_DECKS
     result.folder_tags = settings.FOLDER_TAGS
