@@ -29,7 +29,8 @@ export interface PluginSettings {
 		"ID Comments": boolean,
 		"Add Obsidian Tags": boolean,
 		"CurlyCloze - Keyword": string,
-		"Smart Scan": boolean
+		"Smart Scan": boolean,
+		"YAML Tags": boolean
 	},
 	IGNORED_FILE_GLOBS: string[]
 }
@@ -57,6 +58,7 @@ export interface FileData {
 	add_context: boolean
 	add_obs_tags: boolean
 	cloze_keyword: string
+	yaml_tags: boolean
 }
 
 export interface ParsedSettings extends FileData {
@@ -64,5 +66,6 @@ export interface ParsedSettings extends FileData {
 	folder_decks: Record<string, string>
 	folder_tags: Record<string, string>
 	ignored_file_globs: string[],
-	smart_scan: boolean
+	smart_scan: boolean,
+	yaml_tags: boolean
 }

@@ -16,6 +16,7 @@ const defaultDescs = {
 	"CurlyCloze - Highlights to Clozes": "Convert ==highlights== -> {highlights} to be processed by CurlyCloze.",
 	"ID Comments": "Wrap note IDs in a HTML comment.",
 	"Add Obsidian Tags": "Interpret #tags in the fields of a note as Anki tags, removing them from the note text in Anki.",
+	"YAML Tags": "Send tags defined in YAML frontmatter to Anki.",
 	"Smart Scan": "Skip files that haven't changed since the last scan (based on MD5 hash). Disable to force a full scan."
 }
 
@@ -129,6 +130,9 @@ export class SettingsTab extends PluginSettingTab {
 		}
 		if (!(plugin.settings["Defaults"].hasOwnProperty("Smart Scan"))) {
 			plugin.settings["Defaults"]["Smart Scan"] = true
+		}
+		if (!(plugin.settings["Defaults"].hasOwnProperty("YAML Tags"))) {
+			plugin.settings["Defaults"]["YAML Tags"] = false
 		}
 
 		for (let key of Object.keys(defaultDescs)) {

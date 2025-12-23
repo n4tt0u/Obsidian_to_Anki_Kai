@@ -137,6 +137,24 @@ abstract class AbstractFile {
     setup_global_tags() {
         const result = this.file.match(this.data.TAG_REGEXP)
         this.global_tags = result ? result[1] : ""
+
+        if (this.data.yaml_tags && this.file_cache.frontmatter && this.file_cache.frontmatter.tags) {
+            let tags = this.file_cache.frontmatter.tags;
+            let tags_str = "";
+            if (Array.isArray(tags)) {
+                tags_str = tags.join(" ");
+            } else if (typeof tags === 'string') {
+                tags_str = tags.replace(/,/g, " ");
+            }
+
+            if (tags_str) {
+                if (this.global_tags) {
+                    this.global_tags += " " + tags_str;
+                } else {
+                    this.global_tags = tags_str;
+                }
+            }
+        }
     }
 
     getHash(): string {
