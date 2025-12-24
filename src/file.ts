@@ -497,7 +497,7 @@ export class AllFile extends AbstractFile {
             (id_position: number, index: number) => {
                 const identifier: number | null = this.note_ids[index + this.notes_to_add.length + this.inline_notes_to_add.length] // Since regular then inline then regex
                 if (identifier) {
-                    regex_inserts.push([id_position, "\n" + id_to_str(identifier, false, this.data.comment)])
+                    regex_inserts.push([id_position, "\n" + id_to_str(identifier, false, this.data.comment).trim()])
                 }
             }
         )
