@@ -31,6 +31,7 @@ The easiest way to install and keep the plugin updated.
 
 - **Note Type Field Update**: Fixed an issue where new fields added to Anki Note Types were not reflected in the plugin settings unless the number of Note Types changed. The "Regenerate Note Type Table" button now correctly forces a full update of field definitions.
 - **Extra Newline in Regex Notes**: Fixed an issue where using Custom Regex to generate cards would insert an unnecessary empty line after the ID comment. Now, the ID is inserted cleanly without disrupting the file format.
+- **Improved Newline Handling**: Standardized the logic for inserting newlines when adding file links, aliases, and context. It now correctly detects if a field already has content and inserts a `<br>` tag only when necessary, preventing formatting issues where text would be concatenated without separation.
 
 ### Complete Plugin Redesign (Based on PR #673)
 
