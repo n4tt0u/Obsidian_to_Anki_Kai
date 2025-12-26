@@ -36,7 +36,6 @@ export interface PluginSettings {
 		"Smart Scan": boolean,
 		"Add Obsidian YAML Tags": boolean,
 		"Bulk Delete IDs": boolean,
-		"Note Type Granular Control": boolean,
 		"Regex Required Tags": boolean
 	},
 	IGNORED_FILE_GLOBS: string[]
@@ -69,15 +68,13 @@ export interface FileData {
 	add_obs_tags: boolean
 	cloze_keyword: string
 	yaml_tags: boolean
-	note_type_granular_control: boolean
 	regex_required_tags: boolean
+	add_file_link: boolean
 }
 
 export interface ParsedSettings extends FileData {
-	add_file_link: boolean
 	folder_decks: Record<string, string>
 	folder_tags: Record<string, string>
 	ignored_file_globs: string[],
 	smart_scan: boolean,
-	yaml_tags: boolean
 }

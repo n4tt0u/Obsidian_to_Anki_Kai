@@ -40,11 +40,12 @@ export async function settingToData(app: App, settings: PluginSettings, fields_d
     //Just a simple transfer
     result.curly_cloze = settings.Defaults.CurlyCloze
     result.highlights_to_cloze = settings.Defaults["CurlyCloze - Highlights to Clozes"]
-    const granular_control = settings.Defaults["Note Type Granular Control"];
-    result.add_file_link = settings.Defaults["Add File Link"] || granular_control;
+    result.curly_cloze = settings.Defaults.CurlyCloze
+    result.highlights_to_cloze = settings.Defaults["CurlyCloze - Highlights to Clozes"]
+    result.add_file_link = settings.Defaults["Add File Link"];
     result.comment = settings.Defaults["ID Comments"]
-    result.add_context = settings.Defaults["Add Context"] || granular_control;
-    result.add_aliases = settings.Defaults["Add Aliases"] || granular_control;
+    result.add_context = settings.Defaults["Add Context"];
+    result.add_aliases = settings.Defaults["Add Aliases"];
     result.add_obs_tags = settings.Defaults["Add Obsidian Tags"]
     result.cloze_keyword = settings.Defaults["CurlyCloze - Keyword"]
     result.smart_scan = settings.Defaults["Smart Scan"]

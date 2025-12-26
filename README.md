@@ -52,19 +52,15 @@ Merged [PR #673](https://github.com/ObsidianToAnki/Obsidian_to_Anki/pull/673) wh
 - **Progress Modal**: Real-time status updates during sync.
 - **Status Bar**: Visual indicator of sync state.
 
-### Note Type Granular Control
+### Enhanced Field Control
 
-Provides finer control over "Add File Link", "Add Context", and "Add Aliases" settings.
+You can now configure "Add File Link", "Add Context", and "Add Aliases" per **Note Type**.
 
-- **Enable**: Go to Settings -> **Advanced** and toggle "**Note Type Granular Control**".
-- **ON State**:
-  - The global toggles for these features are hidden.
-  - Instead, you configure these settings per **Note Type**.
-  - In the "Note Types" tab, each Note Type now allows you to select a target field or **"None"** (empty selection) for Link, Context, and Aliases.
-  - **Effect**: You can have file links added for "Basic" notes but disabled for "Cloze" notes, etc.
-- **OFF State**:
-  - The classic behavior applies. Global toggles (in the "General" tab) control these features for ALL note types.
-  - **Fallback Behavior**: When switching from ON to OFF, if any Note Type was set to "None", it is automatically reset to the default field. This ensures that the global toggle works as expected immediately.
+- **Enable**: Toggle "**Add File Link**", "**Add Context**", or "**Add Aliases**" in the "**Default Settings**" tab.
+- **Configuration**:
+  - When enabled, new columns will appear in the "**Note Types**" tab (e.g., "File Link Field").
+  - For each Note Type, you can select the target field or choose **"None"** to disable the feature for that specific Note Type.
+- **Disable**: Turning the global toggle OFF will hide the column and disable the feature across all Note Types.
 
 ### Configurable CurlyCloze Keyword
 

@@ -160,24 +160,15 @@ export class SettingsTab extends PluginSettingTab {
 			plugin.settings["Defaults"]["Bulk Delete IDs"] = false
 		}
 
-		if (!(plugin.settings["Defaults"].hasOwnProperty("Note Type Granular Control"))) {
-			plugin.settings["Defaults"]["Note Type Granular Control"] = false
-		}
+
 		if (!(plugin.settings["Defaults"].hasOwnProperty("Regex Required Tags"))) {
 			plugin.settings["Defaults"]["Regex Required Tags"] = false
 		}
 
 		for (let key of Object.keys(defaultDescs)) {
 			// Skip Scan Directory (already added above) and Regex
-			if (key === "Scan Directory" || key === "Scan Tags" || key === "Regex" || key === "Bulk Delete IDs" || key === "Note Type Granular Control" || key === "Regex Required Tags") {
+			if (key === "Scan Directory" || key === "Scan Tags" || key === "Regex" || key === "Bulk Delete IDs" || key === "Regex Required Tags") {
 				continue
-			}
-
-			// If Granular Control is ON, skip the global toggles for Link/Context/Aliases
-			if (plugin.settings["Defaults"]["Note Type Granular Control"]) {
-				if (key === "Add File Link" || key === "Add Context" || key === "Add Aliases") {
-					continue
-				}
 			}
 
 			if (typeof plugin.settings["Defaults"][key] === "string") {
@@ -200,6 +191,9 @@ export class SettingsTab extends PluginSettingTab {
 							.onChange((value) => {
 								plugin.settings["Defaults"][key] = value
 								plugin.saveAllData()
+								if (key === "Add File Link" || key === "Add Context" || key === "Add Aliases") {
+									this.display()
+								}
 							})
 					)
 			} else {
@@ -234,6 +228,10 @@ export class SettingsTab extends PluginSettingTab {
 
 		const plugin = (this as any).plugin
 		const enableRequiredTags = plugin.settings.Defaults["Regex Required Tags"];
+		const enableLink = plugin.settings.Defaults["Add File Link"];
+		const enableContext = plugin.settings.Defaults["Add Context"];
+		const enableAliases = plugin.settings.Defaults["Add Aliases"];
+
 
 		container.createEl('h3', { text: 'Note Type Configuration' })
 		container.createEl('p', {
@@ -247,7 +245,11 @@ export class SettingsTab extends PluginSettingTab {
 		if (enableRequiredTags) {
 			headers.push('Required Tags');
 		}
-		headers.push('File Link Field', 'Context Field', 'Aliases Field');
+
+		// Conditionally add headers
+		if (enableLink) headers.push('File Link Field');
+		if (enableContext) headers.push('Context Field');
+		if (enableAliases) headers.push('Aliases Field');
 
 		const searchableTable = new SearchableTable(
 			tableContainer,
@@ -268,23 +270,35 @@ export class SettingsTab extends PluginSettingTab {
 		for (let note_type of plugin.note_types) {
 			const row = searchableTable.addRow()
 			const cells: HTMLTableCellElement[] = []
-			const colCount = enableRequiredTags ? 6 : 5;
+
+			// Calculate total columns needed
+			let colCount = 2; // Note Type + Custom Regexp
+			if (enableRequiredTags) colCount++;
+			if (enableLink) colCount++;
+			if (enableContext) colCount++;
+			if (enableAliases) colCount++;
 
 			for (let i = 0; i < colCount; i++) {
 				cells.push(searchableTable.insertCell(row))
 			}
 
 			let cellIdx = 0;
-			cells[cellIdx++].innerHTML = note_type; // 0
-			this.setup_custom_regexp(note_type, cells[cellIdx++], plugin); // 1
+			cells[cellIdx++].innerHTML = note_type; // Note Type
+			this.setup_custom_regexp(note_type, cells[cellIdx++], plugin); // Custom Regexp
 
 			if (enableRequiredTags) {
-				this.setup_regexp_tags(note_type, cells[cellIdx++], plugin); // 2
+				this.setup_regexp_tags(note_type, cells[cellIdx++], plugin); // Required Tags
 			}
 
-			this.setup_link_field(note_type, cells[cellIdx++], plugin); // 3 (or 2)
-			this.setup_context_field(note_type, cells[cellIdx++], plugin); // 4 (or 3)
-			this.setup_alias_field(note_type, cells[cellIdx++], plugin); // 5 (or 4)
+			if (enableLink) {
+				this.setup_link_field(note_type, cells[cellIdx++], plugin);
+			}
+			if (enableContext) {
+				this.setup_context_field(note_type, cells[cellIdx++], plugin);
+			}
+			if (enableAliases) {
+				this.setup_alias_field(note_type, cells[cellIdx++], plugin);
+			}
 		}
 	}
 
@@ -382,42 +396,6 @@ export class SettingsTab extends PluginSettingTab {
 
 
 
-
-		new Setting(container)
-			.setName("Note Type Granular Control")
-			.setDesc("Enables per-Note Type configuration for 'Add File Link', 'Add Context', and 'Add Aliases', replacing the global toggles.")
-			.addToggle(toggle => toggle
-				.setValue(plugin.settings.Defaults["Note Type Granular Control"])
-				.onChange(async (value) => {
-					plugin.settings.Defaults["Note Type Granular Control"] = value
-
-					// If turning OFF, reset any "None" fields to their default (first) field
-					if (!value) {
-						if (Object.keys(plugin.fields_dict).length === 0) {
-							plugin.fields_dict = await plugin.loadFieldsDict()
-						}
-
-						if (Object.keys(plugin.fields_dict).length > 0) {
-							for (const note_type in plugin.fields_dict) {
-								const defaultField = plugin.fields_dict[note_type][0] || "";
-
-								if (!plugin.settings.CONTEXT_FIELDS[note_type]) {
-									plugin.settings.CONTEXT_FIELDS[note_type] = defaultField;
-								}
-								if (!plugin.settings.FILE_LINK_FIELDS[note_type]) {
-									plugin.settings.FILE_LINK_FIELDS[note_type] = defaultField;
-								}
-								if (!plugin.settings.ALIAS_FIELDS[note_type]) {
-									plugin.settings.ALIAS_FIELDS[note_type] = defaultField;
-								}
-							}
-						}
-					}
-
-					plugin.saveAllData()
-					this.display() // Refresh the UI to show/hide global settings
-				})
-			)
 
 		new Setting(container)
 			.setName("Regex Required Tags")
@@ -568,9 +546,7 @@ export class SettingsTab extends PluginSettingTab {
 						}
 					}
 					const field_names = plugin.fields_dict[note_type]
-					if (plugin.settings.Defaults["Note Type Granular Control"]) {
-						dropdown.addOption("", "None")
-					}
+					dropdown.addOption("", "None")
 					for (let field of field_names) {
 						dropdown.addOption(field, field)
 					}
@@ -594,9 +570,7 @@ export class SettingsTab extends PluginSettingTab {
 			.addDropdown(
 				async dropdown => {
 					const field_names = plugin.fields_dict[note_type]
-					if (plugin.settings.Defaults["Note Type Granular Control"]) {
-						dropdown.addOption("", "None")
-					}
+					dropdown.addOption("", "None")
 					for (let field of field_names) {
 						dropdown.addOption(field, field)
 					}
@@ -621,9 +595,7 @@ export class SettingsTab extends PluginSettingTab {
 			.addDropdown(
 				async dropdown => {
 					const field_names = plugin.fields_dict[note_type]
-					if (plugin.settings.Defaults["Note Type Granular Control"]) {
-						dropdown.addOption("", "None")
-					}
+					dropdown.addOption("", "None")
 					for (let field of field_names) {
 						dropdown.addOption(field, field)
 					}

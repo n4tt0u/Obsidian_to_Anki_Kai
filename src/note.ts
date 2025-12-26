@@ -91,11 +91,11 @@ abstract class AbstractNote {
         const file_link_fields = data.file_link_fields
         if (url) {
             let shouldAddLink = false;
-            if (data.note_type_granular_control) {
+            if (data.add_file_link) {
                 const linkField = file_link_fields[this.note_type];
                 shouldAddLink = (linkField !== "" && linkField !== undefined);
             } else {
-                shouldAddLink = true;
+                shouldAddLink = false;
             }
 
             if (shouldAddLink) {
@@ -114,11 +114,11 @@ abstract class AbstractNote {
             }
         }
         let shouldAddAliases = false;
-        if (data.note_type_granular_control) {
+        if (data.add_aliases) {
             const aliasField = data.alias_fields[this.note_type];
             shouldAddAliases = (aliasField !== "" && aliasField !== undefined);
         } else {
-            shouldAddAliases = data.add_aliases;
+            shouldAddAliases = false;
         }
 
         if (shouldAddAliases && aliases.length > 0) {
@@ -325,11 +325,11 @@ export class RegexNote {
         const file_link_fields = data.file_link_fields
         if (url) {
             let shouldAddLink = false;
-            if (data.note_type_granular_control) {
+            if (data.add_file_link) {
                 const linkField = file_link_fields[this.note_type];
                 shouldAddLink = (linkField !== "" && linkField !== undefined);
             } else {
-                shouldAddLink = true;
+                shouldAddLink = false;
             }
 
             if (shouldAddLink) {
@@ -348,11 +348,11 @@ export class RegexNote {
             }
         }
         let shouldAddAliases = false;
-        if (data.note_type_granular_control) {
+        if (data.add_aliases) {
             const aliasField = data.alias_fields[this.note_type];
             shouldAddAliases = (aliasField !== "" && aliasField !== undefined);
         } else {
-            shouldAddAliases = data.add_aliases;
+            shouldAddAliases = false;
         }
 
         if (shouldAddAliases && aliases.length > 0) {

@@ -107,11 +107,11 @@ abstract class AbstractFile {
     }
 
     getShouldAddContext(note_type: string): boolean {
-        if (this.data.note_type_granular_control) {
+        if (this.data.add_context) {
             const contextField = this.data.context_fields[note_type];
             return (contextField !== "" && contextField !== undefined);
         }
-        return this.data.add_context;
+        return false;
     }
 
     setup_frozen_fields_dict() {
