@@ -54,7 +54,6 @@ export default class MyPlugin extends Plugin {
 				"Smart Scan": true,
 				"Add Obsidian YAML Tags": false,
 				"Bulk Delete IDs": false,
-				"Note Type Granular Control": false,
 				"Regex Required Tags": false
 			},
 			IGNORED_FILE_GLOBS: DEFAULT_IGNORED_FILE_GLOBS,
