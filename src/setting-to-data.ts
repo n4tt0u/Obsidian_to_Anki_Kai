@@ -11,6 +11,7 @@ export async function settingToData(app: App, settings: PluginSettings, fields_d
     result.vault_name = app.vault.getName()
     result.fields_dict = fields_dict
     result.custom_regexps = settings.CUSTOM_REGEXPS
+    result.regexp_tags = settings.REGEXP_TAGS
     result.file_link_fields = settings.FILE_LINK_FIELDS
     result.context_fields = settings.CONTEXT_FIELDS
     result.alias_fields = settings.ALIAS_FIELDS
@@ -48,6 +49,7 @@ export async function settingToData(app: App, settings: PluginSettings, fields_d
     result.cloze_keyword = settings.Defaults["CurlyCloze - Keyword"]
     result.smart_scan = settings.Defaults["Smart Scan"]
     result.yaml_tags = settings.Defaults["Add Obsidian YAML Tags"]
+    result.regex_required_tags = settings.Defaults["Regex Required Tags"]
     result.ignored_file_globs = settings.IGNORED_FILE_GLOBS ?? [];
     result.ignored_file_globs = settings.IGNORED_FILE_GLOBS ?? [];
     return result

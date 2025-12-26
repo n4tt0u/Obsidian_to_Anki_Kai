@@ -111,6 +111,21 @@ If set, only files containing at least one of the specified tags will be process
 > This setting only applies to the **Vault Scan** or **Auto Scan**.
 > If you right-click a file and select "Sync to Anki", it will be **forcefully synced** regardless of whether it matches the "Scan Tags".
 
+### Regex Required Tags (Advanced)
+
+Allows you to specify that a Custom Regex should only be applied if the file contains specific tags.
+This is useful when you want to apply different Note Types (e.g., "Basic" vs "Basic (Reverse)") to the same text pattern based on a tag (e.g., `#reverse`).
+
+- **Enable**: Go to Settings -> Advanced and toggle "**Regex Required Tags**".
+- **Usage**:
+    1. In the "Note Types" settings, a new **Required Tags** column will appear.
+    2. Enter tags separated by commas (e.g., `tagA, tagB`).
+    3. The regex for that row will **only** be applied if the file contains at least one of these tags (OR condition).
+- **Prioritization**:
+  - Rules **with** Required Tags are automatically prioritized (processed first).
+  - If a file matches the tag, the strict rule applies.
+  - If not, the plugin falls back to the generic rule (empty tags).
+
 ### Bulk Delete IDs (Experimental)
 
 A feature to bulk delete Anki cards associated with a specific file.

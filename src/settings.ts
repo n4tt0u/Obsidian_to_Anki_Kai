@@ -163,10 +163,13 @@ export class SettingsTab extends PluginSettingTab {
 		if (!(plugin.settings["Defaults"].hasOwnProperty("Note Type Granular Control"))) {
 			plugin.settings["Defaults"]["Note Type Granular Control"] = false
 		}
+		if (!(plugin.settings["Defaults"].hasOwnProperty("Regex Required Tags"))) {
+			plugin.settings["Defaults"]["Regex Required Tags"] = false
+		}
 
 		for (let key of Object.keys(defaultDescs)) {
 			// Skip Scan Directory (already added above) and Regex
-			if (key === "Scan Directory" || key === "Scan Tags" || key === "Regex" || key === "Bulk Delete IDs" || key === "Note Type Granular Control") {
+			if (key === "Scan Directory" || key === "Scan Tags" || key === "Regex" || key === "Bulk Delete IDs" || key === "Note Type Granular Control" || key === "Regex Required Tags") {
 				continue
 			}
 
@@ -230,6 +233,7 @@ export class SettingsTab extends PluginSettingTab {
 		if (!container) return
 
 		const plugin = (this as any).plugin
+		const enableRequiredTags = plugin.settings.Defaults["Regex Required Tags"];
 
 		container.createEl('h3', { text: 'Note Type Configuration' })
 		container.createEl('p', {
@@ -239,9 +243,15 @@ export class SettingsTab extends PluginSettingTab {
 
 		// Create searchable table
 		const tableContainer = container.createDiv()
+		const headers = ['Note Type', 'Custom Regexp'];
+		if (enableRequiredTags) {
+			headers.push('Required Tags');
+		}
+		headers.push('File Link Field', 'Context Field', 'Aliases Field');
+
 		const searchableTable = new SearchableTable(
 			tableContainer,
-			['Note Type', 'Custom Regexp', 'File Link Field', 'Context Field', 'Aliases Field'],
+			headers,
 			'Search note types...'
 		)
 
@@ -251,20 +261,30 @@ export class SettingsTab extends PluginSettingTab {
 		if (!(plugin.settings.hasOwnProperty("ALIAS_FIELDS"))) {
 			plugin.settings.ALIAS_FIELDS = {}
 		}
+		if (!(plugin.settings.hasOwnProperty("REGEXP_TAGS"))) {
+			plugin.settings.REGEXP_TAGS = {}
+		}
 
 		for (let note_type of plugin.note_types) {
 			const row = searchableTable.addRow()
 			const cells: HTMLTableCellElement[] = []
+			const colCount = enableRequiredTags ? 6 : 5;
 
-			for (let i = 0; i < 5; i++) {
+			for (let i = 0; i < colCount; i++) {
 				cells.push(searchableTable.insertCell(row))
 			}
 
-			cells[0].innerHTML = note_type
-			this.setup_custom_regexp(note_type, cells, plugin)
-			this.setup_link_field(note_type, cells, plugin)
-			this.setup_context_field(note_type, cells, plugin)
-			this.setup_alias_field(note_type, cells, plugin)
+			let cellIdx = 0;
+			cells[cellIdx++].innerHTML = note_type; // 0
+			this.setup_custom_regexp(note_type, cells[cellIdx++], plugin); // 1
+
+			if (enableRequiredTags) {
+				this.setup_regexp_tags(note_type, cells[cellIdx++], plugin); // 2
+			}
+
+			this.setup_link_field(note_type, cells[cellIdx++], plugin); // 3 (or 2)
+			this.setup_context_field(note_type, cells[cellIdx++], plugin); // 4 (or 3)
+			this.setup_alias_field(note_type, cells[cellIdx++], plugin); // 5 (or 4)
 		}
 	}
 
@@ -359,6 +379,10 @@ export class SettingsTab extends PluginSettingTab {
 				})
 			)
 
+
+
+
+
 		new Setting(container)
 			.setName("Note Type Granular Control")
 			.setDesc("Enables per-Note Type configuration for 'Add File Link', 'Add Context', and 'Add Aliases', replacing the global toggles.")
@@ -392,6 +416,18 @@ export class SettingsTab extends PluginSettingTab {
 
 					plugin.saveAllData()
 					this.display() // Refresh the UI to show/hide global settings
+				})
+			)
+
+		new Setting(container)
+			.setName("Regex Required Tags")
+			.setDesc("Enables 'Required Tags' column in Note Types. Allows specifying tags that must be present for a regex to apply.")
+			.addToggle(toggle => toggle
+				.setValue(plugin.settings.Defaults["Regex Required Tags"])
+				.onChange((value) => {
+					plugin.settings.Defaults["Regex Required Tags"] = value
+					plugin.saveAllData()
+					this.display() // Refresh to show/hide column
 				})
 			)
 	}
@@ -477,9 +513,9 @@ export class SettingsTab extends PluginSettingTab {
 	}
 
 	// Helper methods from original settings.ts
-	setup_custom_regexp(note_type: string, cells: HTMLTableCellElement[], plugin: any) {
+	setup_custom_regexp(note_type: string, cell: HTMLTableCellElement, plugin: any) {
 		let regexp_section = plugin.settings["CUSTOM_REGEXPS"]
-		let custom_regexp = new Setting(cells[1])
+		let custom_regexp = new Setting(cell)
 			.addText(
 				text => text.setValue(
 					regexp_section.hasOwnProperty(note_type) ? regexp_section[note_type] : ""
@@ -489,14 +525,32 @@ export class SettingsTab extends PluginSettingTab {
 						plugin.saveAllData()
 					})
 			)
-		custom_regexp.settingEl = cells[1]
+		custom_regexp.settingEl = cell
 		custom_regexp.infoEl.remove()
 		custom_regexp.controlEl.className += " anki-center"
 	}
 
-	setup_link_field(note_type: string, cells: HTMLTableCellElement[], plugin: any) {
+	setup_regexp_tags(note_type: string, cell: HTMLTableCellElement, plugin: any) {
+		let regexp_tags_section = plugin.settings["REGEXP_TAGS"]
+		let setting = new Setting(cell)
+			.addText(
+				text => text.setValue(
+					regexp_tags_section.hasOwnProperty(note_type) ? regexp_tags_section[note_type] : ""
+				)
+					.setPlaceholder("tag1, tag2")
+					.onChange((value) => {
+						plugin.settings["REGEXP_TAGS"][note_type] = value
+						plugin.saveAllData()
+					})
+			)
+		setting.settingEl = cell
+		setting.infoEl.remove()
+		setting.controlEl.className += " anki-center"
+	}
+
+	setup_link_field(note_type: string, cell: HTMLTableCellElement, plugin: any) {
 		let link_fields_section = plugin.settings.FILE_LINK_FIELDS
-		let link_field = new Setting(cells[2])
+		let link_field = new Setting(cell)
 			.addDropdown(
 				async dropdown => {
 					if (!(plugin.fields_dict[note_type])) {
@@ -529,14 +583,14 @@ export class SettingsTab extends PluginSettingTab {
 					})
 				}
 			)
-		link_field.settingEl = cells[2]
+		link_field.settingEl = cell
 		link_field.infoEl.remove()
 		link_field.controlEl.className += " anki-center"
 	}
 
-	setup_context_field(note_type: string, cells: HTMLTableCellElement[], plugin: any) {
+	setup_context_field(note_type: string, cell: HTMLTableCellElement, plugin: any) {
 		let context_fields_section: Record<string, string> = plugin.settings.CONTEXT_FIELDS
-		let context_field = new Setting(cells[3])
+		let context_field = new Setting(cell)
 			.addDropdown(
 				async dropdown => {
 					const field_names = plugin.fields_dict[note_type]
@@ -555,15 +609,15 @@ export class SettingsTab extends PluginSettingTab {
 					})
 				}
 			)
-		context_field.settingEl = cells[3]
+		context_field.settingEl = cell
 		context_field.infoEl.remove()
 		context_field.infoEl.remove()
 		context_field.controlEl.className += " anki-center"
 	}
 
-	setup_alias_field(note_type: string, cells: HTMLTableCellElement[], plugin: any) {
+	setup_alias_field(note_type: string, cell: HTMLTableCellElement, plugin: any) {
 		let alias_fields_section: Record<string, string> = plugin.settings.ALIAS_FIELDS
-		let alias_field = new Setting(cells[4])
+		let alias_field = new Setting(cell)
 			.addDropdown(
 				async dropdown => {
 					const field_names = plugin.fields_dict[note_type]
@@ -582,7 +636,7 @@ export class SettingsTab extends PluginSettingTab {
 					})
 				}
 			)
-		alias_field.settingEl = cells[4]
+		alias_field.settingEl = cell
 		alias_field.infoEl.remove()
 		alias_field.controlEl.className += " anki-center"
 	}

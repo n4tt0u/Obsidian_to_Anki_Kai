@@ -21,6 +21,7 @@ export default class MyPlugin extends Plugin {
 	async getDefaultSettings(): Promise<PluginSettings> {
 		let settings: PluginSettings = {
 			CUSTOM_REGEXPS: {},
+			REGEXP_TAGS: {},
 			FILE_LINK_FIELDS: {},
 			CONTEXT_FIELDS: {},
 			ALIAS_FIELDS: {},
@@ -53,7 +54,8 @@ export default class MyPlugin extends Plugin {
 				"Smart Scan": true,
 				"Add Obsidian YAML Tags": false,
 				"Bulk Delete IDs": false,
-				"Note Type Granular Control": false
+				"Note Type Granular Control": false,
+				"Regex Required Tags": false
 			},
 			IGNORED_FILE_GLOBS: DEFAULT_IGNORED_FILE_GLOBS,
 		}
@@ -157,14 +159,29 @@ export default class MyPlugin extends Plugin {
 
 	regenerateSettingsRegexps() {
 		let regexp_section = this.settings["CUSTOM_REGEXPS"]
+		let regexp_tags_section = this.settings["REGEXP_TAGS"]
 		// For new note types
 		for (let note_type of this.note_types) {
 			this.settings["CUSTOM_REGEXPS"][note_type] = regexp_section.hasOwnProperty(note_type) ? regexp_section[note_type] : ""
+			// Initialize REGEXP_TAGS if check fails, but wait, REGEXP_TAGS is new so it might not exist.
+			if (regexp_tags_section) {
+				this.settings["REGEXP_TAGS"][note_type] = regexp_tags_section.hasOwnProperty(note_type) ? regexp_tags_section[note_type] : ""
+			} else {
+				// First time initialization handling happens in settings.ts mostly, checking hasOwnProperty.
+			}
 		}
 		// Removing old note types
 		for (let note_type of Object.keys(this.settings["CUSTOM_REGEXPS"])) {
 			if (!this.note_types.includes(note_type)) {
 				delete this.settings["CUSTOM_REGEXPS"][note_type]
+			}
+		}
+		// Removing old note types from REGEXP_TAGS
+		if (this.settings["REGEXP_TAGS"]) {
+			for (let note_type of Object.keys(this.settings["REGEXP_TAGS"])) {
+				if (!this.note_types.includes(note_type)) {
+					delete this.settings["REGEXP_TAGS"][note_type]
+				}
 			}
 		}
 	}

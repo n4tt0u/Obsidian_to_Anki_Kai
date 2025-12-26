@@ -471,13 +471,66 @@ export class AllFile extends AbstractFile {
         }
     }
 
+    hasRequiredTag(tags_str: string): boolean {
+        if (!tags_str || tags_str.trim().length === 0) return true;
+
+        const requiredTags = tags_str.split(',').map(t => t.trim()).filter(t => t.length > 0);
+        if (requiredTags.length === 0) return true;
+
+        // Check frontmatter tags
+        const frontmatterTags = this.file_cache.frontmatter?.tags;
+        if (frontmatterTags) {
+            if (Array.isArray(frontmatterTags)) {
+                if (frontmatterTags.some(tag => requiredTags.includes(tag))) return true;
+            } else if (typeof frontmatterTags === 'string') {
+                const fileTags = frontmatterTags.split(',').map(t => t.trim());
+                if (fileTags.some(tag => requiredTags.includes(tag))) return true;
+            }
+        }
+
+        // Check inline tags (#tag)
+        const inlineTags = this.file_cache.tags;
+        if (inlineTags) {
+            if (inlineTags.some(tagCache => {
+                const tagName = tagCache.tag.replace('#', '');
+                return requiredTags.includes(tagName);
+            })) return true;
+        }
+
+        return false;
+    }
+
     scanFile() {
         this.setupScan()
         this.scanNotes()
         this.scanInlineNotes()
-        for (let note_type in this.custom_regexps) {
+
+        const noteTypes = Object.keys(this.custom_regexps);
+        // Sort note types: prioritizes those with required tags ONLY if enabled
+        if (this.data.regex_required_tags) {
+            noteTypes.sort((a, b) => {
+                const tagsA = this.data.regexp_tags && this.data.regexp_tags[a] ? this.data.regexp_tags[a].trim() : "";
+                const tagsB = this.data.regexp_tags && this.data.regexp_tags[b] ? this.data.regexp_tags[b].trim() : "";
+
+                // If both have tags or both don't, maintain execution order (stable sort not strictly guaranteed but acceptable here)
+                // Ideally specific should beat generic. 
+                // Has tags (-1) comes before No tags (1)
+                if (tagsA && !tagsB) return -1;
+                if (!tagsA && tagsB) return 1;
+                return 0;
+            });
+        }
+
+        for (let note_type of noteTypes) {
             const regexp_str: string = this.custom_regexps[note_type]
             if (regexp_str) {
+                // Check for required tags
+                const requiredTags = this.data.regexp_tags ? this.data.regexp_tags[note_type] : "";
+                if (this.data.regex_required_tags) {
+                    if (!this.hasRequiredTag(requiredTags)) {
+                        continue;
+                    }
+                }
                 this.search(note_type, regexp_str)
             }
         }
