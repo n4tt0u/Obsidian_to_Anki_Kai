@@ -142,7 +142,7 @@ export class FileManager {
                 new AllFile(
                     content,
                     file.path,
-                    (this.data.add_file_link || this.data.note_type_granular_control) ? this.getUrl(file) : "",
+                    (this.data.add_file_link) ? this.getUrl(file) : "",
                     file_data,
                     cache
                 )

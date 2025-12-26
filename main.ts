@@ -59,7 +59,7 @@ export default class MyPlugin extends Plugin {
 			IGNORED_FILE_GLOBS: DEFAULT_IGNORED_FILE_GLOBS,
 		}
 		/*Making settings from scratch, so need note types*/
-		this.note_types = await AnkiConnect.invoke('modelNames') as Array<string>
+		this.note_types = (await AnkiConnect.invoke('modelNames') as Array<string>).sort()
 		this.fields_dict = await this.generateFieldsDict()
 		for (let note_type of this.note_types) {
 			settings["CUSTOM_REGEXPS"][note_type] = ""
@@ -464,7 +464,7 @@ export default class MyPlugin extends Plugin {
 			return
 		}
 
-		this.note_types = Object.keys(this.settings["CUSTOM_REGEXPS"])
+		this.note_types = Object.keys(this.settings["CUSTOM_REGEXPS"]).sort()
 		this.fields_dict = await this.loadFieldsDict()
 		if (Object.keys(this.fields_dict).length == 0) {
 			new Notice('Need to connect to Anki to generate fields dictionary...')
