@@ -1,7 +1,7 @@
 {
   "id": "obsidian-to-anki-plugin",
   "name": "Obsidian_to_Anki_Kai",
-  "version": "4.3.0",
+  "version": "4.4.0",
   "minAppVersion": "0.9.20",
   "description": "Forked version featuring a redesigned UI, extended tag support (YAML/Scan Tags), and improved sync workflow.",
   "author": "n4tt0u (Original: Pseudonium)",
