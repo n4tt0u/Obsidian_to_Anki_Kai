@@ -167,7 +167,7 @@ export class SettingsTab extends PluginSettingTab {
 
 		for (let key of Object.keys(defaultDescs)) {
 			// Skip Scan Directory (already added above) and Regex
-			if (key === "Scan Directory" || key === "Scan Tags" || key === "Regex" || key === "Bulk Delete IDs" || key === "Regex Required Tags") {
+			if (key === "Scan Directory" || key === "Scan Tags" || key === "Regex" || key === "Bulk Delete IDs" || key === "Regex Required Tags" || key === "Smart Scan") {
 				continue
 			}
 
@@ -381,12 +381,28 @@ export class SettingsTab extends PluginSettingTab {
 		const plugin = (this as any).plugin
 
 		container.createEl('h3', { text: 'Actions' })
+
+
 		this.setup_buttons(container, plugin)
+
 
 		container.createEl('h3', { text: 'Import/Export Settings', cls: 'anki-settings-section' })
 		this.setup_import_export(container, plugin)
 
 		container.createEl('h3', { text: 'Experimental Features', cls: 'anki-settings-section' })
+
+		new Setting(container)
+			.setName("Smart Scan")
+			.setDesc(defaultDescs["Smart Scan"])
+			.addToggle(toggle => toggle
+				.setValue(plugin.settings.Defaults["Smart Scan"])
+				.onChange((value) => {
+					plugin.settings.Defaults["Smart Scan"] = value
+					plugin.saveAllData()
+				})
+			)
+
+
 		new Setting(container)
 			.setName("Bulk Delete IDs")
 			.setDesc(defaultDescs["Bulk Delete IDs"])
