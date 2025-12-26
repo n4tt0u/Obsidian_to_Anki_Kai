@@ -11,7 +11,7 @@ export class TabContainer {
     private tabs: Map<string, HTMLElement> = new Map()
     private activeTab: string | null = null
 
-    constructor(container: HTMLElement, tabs: TabConfig[]) {
+    constructor(container: HTMLElement, tabs: TabConfig[], initialTabId?: string) {
         this.container = container
 
         // Create tabs header
@@ -22,8 +22,13 @@ export class TabContainer {
 
         // Initialize tabs
         tabs.forEach((tab, index) => {
-            this.createTab(tab, index === 0)
+            const isActive = initialTabId ? tab.id === initialTabId : index === 0
+            this.createTab(tab, isActive)
         })
+    }
+
+    getActiveTab(): string | null {
+        return this.activeTab
     }
 
     private createTab(config: TabConfig, isActive: boolean = false) {

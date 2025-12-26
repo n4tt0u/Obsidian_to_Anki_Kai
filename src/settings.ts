@@ -43,6 +43,9 @@ export class SettingsTab extends PluginSettingTab {
 		wikiLink.style.marginBottom = '16px'
 		wikiLink.style.display = 'block'
 
+		// Check if we have an active tab from before
+		const activeTab = this.tabContainer?.getActiveTab()
+
 		// Create tabs
 		this.tabContainer = new TabContainer(containerEl, [
 			{ id: 'general', name: 'General' },
@@ -50,7 +53,7 @@ export class SettingsTab extends PluginSettingTab {
 			{ id: 'folders', name: 'Folders' },
 			{ id: 'syntax', name: 'Syntax' },
 			{ id: 'advanced', name: 'Advanced' }
-		])
+		], activeTab || undefined)
 
 		this.setupGeneralTab()
 		this.setupNoteTypesTab()
