@@ -3,7 +3,7 @@ import { ParsedSettings, FileData } from './interfaces/settings-interface'
 import { App, TFile, TFolder, TAbstractFile, CachedMetadata, FileSystemAdapter, Notice } from 'obsidian'
 import { AllFile } from './file'
 import * as AnkiConnect from './anki'
-import { basename } from 'path'
+import * as c from './constants'
 import multimatch from "multimatch"
 interface addNoteResponse {
     result: number,
@@ -219,7 +219,7 @@ export class FileManager {
                     const realPath = (this.app.vault.adapter as FileSystemAdapter).getFullPath(dataFile.path)
                     temp.push(
                         AnkiConnect.storeMediaFileByPath(
-                            basename(mediaLink),
+                            c.ankiMediaName(mediaLink),
                             realPath
                         )
                     )

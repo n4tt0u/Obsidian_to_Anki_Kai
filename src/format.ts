@@ -1,5 +1,5 @@
 import { AnkiConnectNote } from './interfaces/note-interface'
-import { basename, extname } from 'path'
+import { extname } from 'path'
 import { Converter } from 'showdown'
 import { CachedMetadata } from 'obsidian'
 import * as c from './constants'
@@ -108,16 +108,24 @@ export class FormatConverter {
 		}
 		for (let embed of this.file_cache.embeds) {
 			if (note_text.includes(embed.original)) {
-				this.detectedMedia.add(embed.link)
-				if (AUDIO_EXTS.includes(extname(embed.link))) {
-					note_text = note_text.replace(new RegExp(c.escapeRegex(embed.original), "g"), "[sound:" + basename(embed.link) + "]")
-				} else if (IMAGE_EXTS.includes(extname(embed.link))) {
+				// decodedLink: for file resolution (original case, percent-decoded).
+				//   files-manager resolves it via getFirstLinkpathDest, so it must
+				//   match the real file name.
+				// ankiName: the name Anki actually stores/references (decoded + lowercased).
+				// Classify by the lowercased extension so .PNG/.MP3 etc. are not skipped.
+				const decodedLink = c.decodeMediaLink(embed.link)
+				const ankiName = c.ankiMediaName(embed.link)
+				const ext = extname(decodedLink).toLowerCase()
+				this.detectedMedia.add(decodedLink)
+				if (AUDIO_EXTS.includes(ext)) {
+					note_text = note_text.replace(new RegExp(c.escapeRegex(embed.original), "g"), "[sound:" + ankiName + "]")
+				} else if (IMAGE_EXTS.includes(ext)) {
 					note_text = note_text.replace(
 						new RegExp(c.escapeRegex(embed.original), "g"),
-						'<img src="' + basename(embed.link) + '" alt="' + embed.displayText + '">'
+						'<img src="' + ankiName + '" alt="' + escapeHtml(embed.displayText || "") + '">'
 					)
 				} else {
-					console.warn("Unsupported extension: ", extname(embed.link))
+					console.warn("Unsupported extension: ", ext)
 				}
 			}
 		}

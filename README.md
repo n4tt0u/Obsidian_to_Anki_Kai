@@ -34,6 +34,11 @@ The easiest way to install and keep the plugin updated.
 - **Extra Newline in Regex Notes**: Fixed an issue where using Custom Regex to generate cards would insert an unnecessary empty line after the ID comment. Now, the ID is inserted cleanly without disrupting the file format.
 - **Improved Newline Handling**: Standardized the logic for inserting newlines when adding file links, aliases, and context. It now correctly detects if a field already has content and inserts a `<br>` tag only when necessary, preventing formatting issues where text would be concatenated without separation.
 - **Field Selection Stability**: Fixed an issue where the "Regenerate Note Type Table" action would clear selected fields if the field names were no longer found. The plugin now automatically validates selected fields after regeneration and reverts invalid selections to the default (first) field of the Note Type.
+- **Broken Images in Anki (Issue #8)**: Fixed images not displaying in Anki. Two causes: (1) percent-encoded markdown embeds (`![](Pasted%20image%201.png)`) are now decoded so the stored filename matches the `<img src>` reference; (2) recent Anki normalises media filenames to lowercase, so both the stored name and the `<img src>` reference are now lowercased to agree on case-sensitive filesystems.
+- **Silent Card Loss from `$` Signs**: Fixed a data-loss bug where stray `$` signs (e.g. currency amounts `$200k` and `$8,000` in different cards) were paired by the inline-math regex across newlines, causing every RegexNote between them to be silently dropped from sync. The math/code regexes now follow Obsidian's actual rendering rules (inline math/code stay single-line; currency-style `$5` is treated as text).
+- **Image `alt` attribute hardened**: The `alt` text of generated `<img>` tags is now HTML-escaped, so an `alt` containing `"` no longer breaks the tag.
+
+> Credit: the three fixes above were discovered and originally patched in the [`999cleo/Obsidian_to_Anki_Cleo`](https://github.com/999cleo/Obsidian_to_Anki_Cleo) fork.
 
 ### Complete Plugin Redesign (Based on PR #673)
 
