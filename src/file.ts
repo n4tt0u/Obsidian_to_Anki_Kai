@@ -10,6 +10,7 @@ import * as AnkiConnect from './anki'
 import * as c from './constants'
 import { FormatConverter } from './format'
 import { CachedMetadata, HeadingCache } from 'obsidian'
+import { blockHasRequiredTag } from './required-tags'
 
 const double_regexp: RegExp = /(?:\r\n|\r|\n)((?:\r\n|\r|\n)(?:<!--)?ID: \d+)/g
 
@@ -526,6 +527,20 @@ export class AllFile extends AbstractFile {
                 let tag_str = search_tags ? TAG_REGEXP_STR : ""
                 let regexp: RegExp = new RegExp(regexp_str + tag_str + id_str, 'gm')
                 for (let match of findignore(regexp, this.file, this.ignore_spans)) {
+                    // Per-block Required Tags check: skip a match that doesn't carry
+                    // the required tag WITHOUT claiming it in ignore_spans, so that a
+                    // later note type can still pick it up (fixes #10).
+                    if (this.data.regex_required_tags) {
+                        const reqTags = this.data.regexp_tags?.[note_type] ?? "";
+                        if (!blockHasRequiredTag(
+                            match.index,
+                            match.index + match[0].length,
+                            this.file_cache,
+                            reqTags
+                        )) {
+                            continue;
+                        }
+                    }
                     this.ignore_spans.push([match.index, match.index + match[0].length])
                     let note_obj = new RegexNote(
                         match, note_type, this.data.fields_dict,
@@ -585,35 +600,6 @@ export class AllFile extends AbstractFile {
         }
     }
 
-    hasRequiredTag(tags_str: string): boolean {
-        if (!tags_str || tags_str.trim().length === 0) return true;
-
-        const requiredTags = tags_str.split(',').map(t => t.trim()).filter(t => t.length > 0);
-        if (requiredTags.length === 0) return true;
-
-        // Check frontmatter tags
-        const frontmatterTags = this.file_cache.frontmatter?.tags;
-        if (frontmatterTags) {
-            if (Array.isArray(frontmatterTags)) {
-                if (frontmatterTags.some(tag => requiredTags.includes(tag))) return true;
-            } else if (typeof frontmatterTags === 'string') {
-                const fileTags = frontmatterTags.split(',').map(t => t.trim());
-                if (fileTags.some(tag => requiredTags.includes(tag))) return true;
-            }
-        }
-
-        // Check inline tags (#tag)
-        const inlineTags = this.file_cache.tags;
-        if (inlineTags) {
-            if (inlineTags.some(tagCache => {
-                const tagName = tagCache.tag.replace('#', '');
-                return requiredTags.includes(tagName);
-            })) return true;
-        }
-
-        return false;
-    }
-
     scanFile() {
         this.setupScan()
         this.scanNotes()
@@ -638,13 +624,7 @@ export class AllFile extends AbstractFile {
         for (let note_type of noteTypes) {
             const regexp_str: string = this.custom_regexps[note_type]
             if (regexp_str) {
-                // Check for required tags
-                const requiredTags = this.data.regexp_tags ? this.data.regexp_tags[note_type] : "";
-                if (this.data.regex_required_tags) {
-                    if (!this.hasRequiredTag(requiredTags)) {
-                        continue;
-                    }
-                }
+                // Required Tags are now checked per-block inside search().
                 this.search(note_type, regexp_str)
             }
         }

@@ -37,6 +37,7 @@ The easiest way to install and keep the plugin updated.
 - **Broken Images in Anki (Issue #8)**: Fixed images not displaying in Anki. Two causes: (1) percent-encoded markdown embeds (`![](Pasted%20image%201.png)`) are now decoded so the stored filename matches the `<img src>` reference; (2) recent Anki normalises media filenames to lowercase, so both the stored name and the `<img src>` reference are now lowercased to agree on case-sensitive filesystems.
 - **Silent Card Loss from `$` Signs**: Fixed a data-loss bug where stray `$` signs (e.g. currency amounts `$200k` and `$8,000` in different cards) were paired by the inline-math regex across newlines, causing every RegexNote between them to be silently dropped from sync. The math/code regexes now follow Obsidian's actual rendering rules (inline math/code stay single-line; currency-style `$5` is treated as text).
 - **Image `alt` attribute hardened**: The `alt` text of generated `<img>` tags is now HTML-escaped, so an `alt` containing `"` no longer breaks the tag.
+- **Regex Required Tags now match per block (Issue #10)**: Required Tags were checked once per *file*, so a file mixing different tags (e.g. `#card/basic` and `#card/reversed`) had whichever note type ran first claim every block via ignore-spans, producing the wrong card type (e.g. a basic card also emitted as reversed). The check now runs per matched block — the inline `#tag`'s position must overlap the match — so each note is routed to its own note type regardless of note-type processing order. Frontmatter tags still apply file-wide; the explicit `Tags:` line is out of scope (inline `#tags` are used, and mirrored on write anyway).
 
 > Credit: the three fixes above were discovered and originally patched in the [`999cleo/Obsidian_to_Anki_Cleo`](https://github.com/999cleo/Obsidian_to_Anki_Cleo) fork.
 
@@ -146,17 +147,21 @@ If set, only files containing at least one of the specified tags will be process
 
 ### Regex Required Tags (Advanced)
 
-Allows you to specify that a Custom Regex should only be applied if the file contains specific tags.
-This is useful when you want to apply different Note Types (e.g., "Basic" vs "Basic (Reverse)") to the same text pattern based on a tag (e.g., `#reverse`).
+Allows you to specify that a Custom Regex should only be applied to a **matched block** that carries specific tags.
+This is useful when you want to apply different Note Types (e.g., "Basic" vs "Basic (Reverse)") to the same text pattern based on a tag (e.g., `#basic` vs `#reverse`) — even within the same file.
 
 - **Enable**: Go to Settings -> Advanced and toggle "**Regex Required Tags**".
 - **Usage**:
     1. In the "Note Types" settings, a new **Required Tags** column will appear.
     2. Enter tags separated by commas (e.g., `tagA, tagB`).
-    3. The regex for that row will **only** be applied if the file contains at least one of these tags (OR condition).
+    3. The regex for that row will **only be applied to a matched block that contains** at least one of these tags (OR condition).
+- **How tags are matched**:
+  - Inline `#tags` (e.g. `#basic`) are matched **per block** — the tag's position must fall inside the matched text, so a single file can mix notes targeting different note types.
+  - Frontmatter tags apply **file-wide** (every block in the file matches).
+  - The plugin's explicit `Tags:` line is **not** considered here — use inline `#tags` instead (the plugin mirrors them into the `Tags:` line on write anyway).
 - **Prioritization**:
   - Rules **with** Required Tags are automatically prioritized (processed first).
-  - If a file matches the tag, the strict rule applies.
+  - If a block matches the tag, the strict rule applies.
   - If not, the plugin falls back to the generic rule (empty tags).
 
 ### Save Note ID to Frontmatter (Experimental)
