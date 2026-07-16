@@ -44,7 +44,8 @@ export interface PluginSettings {
 		"Render Clozes - Highlight": boolean,
 		"Cloze Deletion Context Menu": boolean,
 		"Show Status Bar": boolean,
-		"AnkiConnect API Key": string
+		"AnkiConnect API Key": string,
+		"Sync AnkiWeb After Export": boolean
 	},
 	IGNORED_FILE_GLOBS: string[]
 }
