@@ -29,7 +29,6 @@ const defaultDescs = {
 	"Show Status Bar": "Show the Anki sync status indicator in the status bar.",
 	"AnkiConnect API Key": "The API key configured in AnkiConnect settings (leave blank if none).",
 	"Sync AnkiWeb After Export": "Automatically sync Anki with AnkiWeb after exporting cards."
-	
 }
 
 export const DEFAULT_IGNORED_FILE_GLOBS = [
@@ -247,7 +246,7 @@ export class SettingsTab extends PluginSettingTab {
 			plugin.settings["Defaults"]["AnkiConnect API Key"] = ""
 		}
 		if (!(plugin.settings["Defaults"].hasOwnProperty("Sync AnkiWeb After Export"))) {
-			plugin.settings["Defaults"]["Sync AnkiWeb After EXport"] = false
+			plugin.settings["Defaults"]["Sync AnkiWeb After Export"] = false
 		}
 
 		for (let key of Object.keys(defaultDescs)) {
@@ -271,7 +270,7 @@ export class SettingsTab extends PluginSettingTab {
 				key === "Cloze Deletion Context Menu" ||
 				key === "Show Status Bar" ||
 				key === "AnkiConnect API Key" ||
-			   	key === "Sync AnkiWeb After Export") {
+				key === "Sync AnkiWeb After Export") {
 				continue
 			}
 

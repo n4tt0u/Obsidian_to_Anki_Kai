@@ -449,24 +449,28 @@ export default class MyPlugin extends Plugin {
 
 				const syncTimeoutMs = 30_000
 
+				let timeoutId: number | undefined
+
 				try {
 					await Promise.race([
 						AnkiConnect.invoke("sync"),
 
-						new Promise((_, reject) =>
-							window.setTimeout(
+						new Promise((_, reject) => {
+							timeoutId = window.setTimeout(
 								() => reject(
 									new Error("AnkiWeb sync timed out")
 								),
 								syncTimeoutMs
 							)
-						)
+						})
 					])
 
 					ankiWebSynced = true
 				} catch (error) {
 					console.error("AnkiWeb sync failed:", error)
 					ankiWebSynced = false
+				} finally {
+					window.clearTimeout(timeoutId)
 				}
 			}
 
