@@ -63,7 +63,8 @@ export default class MyPlugin extends Plugin {
 				"Render Clozes - Highlight": false,
 				"Cloze Deletion Context Menu": false,
 				"Show Status Bar": true,
-				"AnkiConnect API Key": ""
+				"AnkiConnect API Key": "",
+				"Sync AnkiWeb After Export": false
 			},
 			IGNORED_FILE_GLOBS: DEFAULT_IGNORED_FILE_GLOBS,
 		}
@@ -438,8 +439,51 @@ export default class MyPlugin extends Plugin {
 			progressModal.setProgress(2, 2, "Saving changes...")
 			await this.saveAllData()
 
+			const syncAnkiWeb =
+				this.settings.Defaults["Sync AnkiWeb After Export"]
+
+			let ankiWebSynced = false
+
+			if (syncAnkiWeb) {
+				progressModal.setStatus("Syncing AnkiWeb...")
+
+				const syncTimeoutMs = 30_000
+
+				let timeoutId: number | undefined
+
+				try {
+					await Promise.race([
+						AnkiConnect.invoke("sync"),
+
+						new Promise((_, reject) => {
+							timeoutId = window.setTimeout(
+								() => reject(
+									new Error("AnkiWeb sync timed out")
+								),
+								syncTimeoutMs
+							)
+						})
+					])
+
+					ankiWebSynced = true
+				} catch (error) {
+					console.error("AnkiWeb sync failed:", error)
+					ankiWebSynced = false
+				} finally {
+					window.clearTimeout(timeoutId)
+				}
+			}
+
 			progressModal.close()
-			new Notice(`✅ Successfully synced ${changedFilesCount} file(s) to Anki!`)
+
+			if (ankiWebSynced) {
+				new Notice(`✅ Successfully synced ${changedFilesCount} file(s) to Anki and AnkiWeb!`)
+			} else if (syncAnkiWeb) {
+				new Notice(`⚠️ Successfully synced ${changedFilesCount} file(s) to Anki, but AnkiWeb sync failed...`)
+			} else {
+				new Notice(`✅ Successfully synced ${changedFilesCount} file(s) to Anki!`)
+			}
+
 			this.updateStatusBar("success")
 
 			// Reset to idle after 3 seconds
