@@ -428,7 +428,11 @@ export class AllFile extends AbstractFile {
             )
             if (parsed.identifier == null) {
                 // Need to make sure global_tags get added
-                parsed.note.tags.push(...this.global_tags.split(TAG_SEP))
+                parsed.note.tags.push(
+                    ...this.global_tags
+                        .split(TAG_SEP)
+                        .filter(tag => tag.trim().length > 0)
+                )
                 this.notes_to_add.push(parsed.note)
                 this.id_indexes.push(position)
             } else {
@@ -489,7 +493,11 @@ export class AllFile extends AbstractFile {
             )
             if (parsed.identifier == null) {
                 // Need to make sure global_tags get added
-                parsed.note.tags.push(...this.global_tags.split(TAG_SEP))
+                parsed.note.tags.push(
+                ...this.global_tags
+                    .split(TAG_SEP)
+                    .filter(tag => tag.trim().length > 0)
+                )
                 this.inline_notes_to_add.push(parsed.note)
                 this.inline_id_indexes.push(position)
             } else {
@@ -573,7 +581,11 @@ export class AllFile extends AbstractFile {
                             this.ignore_spans.pop()
                             continue
                         }
-                        parsed.note.tags.push(...this.global_tags.split(TAG_SEP))
+                        parsed.note.tags.push(
+                            ...this.global_tags
+                                .split(TAG_SEP)
+                                .filter(tag => tag.trim().length > 0)
+                        )
                         this.regex_notes_to_add.push(parsed.note)
                         this.regex_id_indexes.push(match.index + match[0].length)
                     }
