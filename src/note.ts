@@ -317,7 +317,29 @@ export class RegexNote {
         for (let index in this.match.slice(1)) {
             fields[this.field_names[index]] = this.match.slice(1)[index] ? this.match.slice(1)[index] : ""
         }
+
+        // Extract optional pronunciation overrides from the visible fields.
+        for (const fieldName of ["Front", "Back"]) {
+            const speechField = fieldName === "Front" ? "FrontSpeech" : "BackSpeech"
+
+            // Only process overrides if the note type supports TTS fields.
+            if (!(fieldName in fields) || !(speechField in fields)) {
+                continue
+            }
+
+            const match = fields[fieldName].match(/%%tts:[ \t]*([^\r\n]*?)%%/)
+
+            if (match) {
+                fields[speechField] = match[1].trim()
+                fields[fieldName] = fields[fieldName].replace(match[0], "").trim()
+            }
+        }
+
         for (let key in fields) {
+            if (key === "FrontSpeech" || key === "BackSpeech") {
+                continue
+            }
+
             fields[key] = this.formatter.format(
                 fields[key].trim(),
                 this.note_type.includes(this.cloze_keyword) && this.curly_cloze,
