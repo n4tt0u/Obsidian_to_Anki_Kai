@@ -152,6 +152,26 @@ abstract class AbstractNote {
 
 }
 
+function extractTtsOverrides(fields: Record<string, string>): void {
+    const fieldPairs = [
+        ["Front", "FrontSpeech"],
+        ["Back", "BackSpeech"]
+    ] as const
+
+    for (const [visibleField, speechField] of fieldPairs) {
+        if (!(visibleField in fields) || !(speechField in fields)) {
+            continue
+        }
+
+        const match = fields[visibleField].match(/%%tts:[ \t]*([^\r\n]*?)%%/)
+
+        if (match) {
+            fields[speechField] = match[1].trim()
+            fields[visibleField] = fields[visibleField].replace(match[0], "").trim()
+        }
+    }
+}
+
 export class Note extends AbstractNote {
 
     getSplitText(): string[] {
@@ -192,20 +212,30 @@ export class Note extends AbstractNote {
 
     getFields(): Record<string, string> {
         let fields: Record<string, string> = {}
+
         for (let field of this.field_names) {
             fields[field] = ""
         }
+
         for (let line of this.split_text.slice(1)) {
             [line, this.current_field] = this.fieldFromLine(line)
             fields[this.current_field] += line + "\n"
         }
+
+        extractTtsOverrides(fields)
+
         for (let key in fields) {
+            if (key === "FrontSpeech" || key === "BackSpeech") {
+                continue
+            }
+
             fields[key] = this.formatter.format(
                 fields[key].trim(),
                 this.note_type.includes(this.cloze_keyword) && this.curly_cloze,
                 this.highlights_to_cloze
             ).trim()
         }
+
         return fields
     }
 
@@ -249,9 +279,11 @@ export class InlineNote extends AbstractNote {
 
     getFields(): Record<string, string> {
         let fields: Record<string, string> = {}
+
         for (let field of this.field_names) {
             fields[field] = ""
         }
+
         for (let word of this.text.split(" ")) {
             for (let field of this.field_names) {
                 if (word === field + ":") {
@@ -261,13 +293,23 @@ export class InlineNote extends AbstractNote {
             }
             fields[this.current_field] += word + " "
         }
+
+        // Move optional TTS annotations into the speech fields.
+        extractTtsOverrides(fields)
+
         for (let key in fields) {
+            // Keep speech text plain, without Markdown-to-HTML conversion.
+            if (key === "FrontSpeech" || key === "BackSpeech") {
+                continue
+            }
+
             fields[key] = this.formatter.format(
                 fields[key].trim(),
                 this.note_type.includes(this.cloze_keyword) && this.curly_cloze,
                 this.highlights_to_cloze
             ).trim()
         }
+
         return fields
     }
 
@@ -319,21 +361,7 @@ export class RegexNote {
         }
 
         // Extract optional pronunciation overrides from the visible fields.
-        for (const fieldName of ["Front", "Back"]) {
-            const speechField = fieldName === "Front" ? "FrontSpeech" : "BackSpeech"
-
-            // Only process overrides if the note type supports TTS fields.
-            if (!(fieldName in fields) || !(speechField in fields)) {
-                continue
-            }
-
-            const match = fields[fieldName].match(/%%tts:[ \t]*([^\r\n]*?)%%/)
-
-            if (match) {
-                fields[speechField] = match[1].trim()
-                fields[fieldName] = fields[fieldName].replace(match[0], "").trim()
-            }
-        }
+        extractTtsOverrides(fields)
 
         for (let key in fields) {
             if (key === "FrontSpeech" || key === "BackSpeech") {
