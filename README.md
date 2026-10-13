@@ -164,6 +164,210 @@ This is useful when you want to apply different Note Types (e.g., "Basic" vs "Ba
   - If a block matches the tag, the strict rule applies.
   - If not, the plugin falls back to the generic rule (empty tags).
 
+### Text-to-Speech (TTS) Overrides
+
+TTS overrides allow you to use **different text for display and speech** in Anki flashcards.
+
+This is particularly useful for CLI commands, abbreviations, symbols, and technical terminology that Anki's built-in text-to-speech engine may pronounce incorrectly.
+
+For example, you can display:
+
+> What does **`git remote -v`** do?
+
+While having Anki pronounce:
+
+> What does git remote dash vee do?
+
+The visible text retains its Markdown formatting, while the spoken text can be customized independently.
+
+#### How It Works
+
+Add an optional `%%tts: ...%%` annotation to the front or back of a flashcard.
+
+During synchronization, the plugin:
+
+1. Extracts the text inside the annotation.
+2. Removes the annotation from the visible field.
+3. Stores the pronunciation text in a separate Anki field.
+4. Preserves Markdown formatting in the visible field.
+
+The following Anki fields are used:
+
+| Field | Purpose |
+|---|---|
+| `Front` | Visible question |
+| `Back` | Visible answer |
+| `FrontSpeech` | Optional pronunciation override for the front |
+| `BackSpeech` | Optional pronunciation override for the back |
+
+**TTS overrides are optional.** You only need to add an annotation when you want Anki to pronounce something differently.
+
+#### Supported Flashcard Formats
+
+TTS overrides work with all three flashcard formats supported by Obsidian_to_Anki_Kai.
+
+**1. Regular Flashcards**
+
+Use the standard `START` / `END` syntax:
+
+```markdown
+START
+Basic (TTS)
+Front: What does **`git remote -v`** do? %%tts: What does git remote dash vee do?%%
+Back: It displays remote repository URLs. %%tts: It displays remote repository U R Ls.%%
+END
+```
+
+**2. Regex Flashcards**
+
+TTS overrides also work with regex-based flashcards:
+
+```markdown
+What does **`git remote -v`** do? %%tts: What does git remote dash vee do?%% #flashcard
+It displays remote repository URLs. %%tts: It displays remote repository U R Ls.%%
+```
+
+Existing two-capture-group regex configurations can still be used. The plugin extracts the TTS annotations after the regex has captured the visible fields, so additional capture groups are not required.
+
+Configure your regex to use the `Basic (TTS)` note type.
+
+**3. Inline Flashcards**
+
+TTS overrides work with `STARTI` / `ENDI` inline flashcards:
+
+```markdown
+STARTI [Basic (TTS)] Front: What does `git remote -v` do? %%tts: What does git remote dash vee do?%% Back: It displays remote URLs. %%tts: It displays remote U R Ls.%% ENDI
+```
+
+Inline flashcards must remain on a single line.
+
+#### Setting Up Anki
+
+To use TTS overrides, create an Anki note type with separate fields for visible and spoken text.
+
+**Step 1: Create the Note Type**
+
+1. Open Anki.
+2. Navigate to **Tools → Manage Note Types**.
+3. Select `Basic` and click **Clone**.
+4. Name the new note type `Basic (TTS)`.
+5. Open **Fields** and add the missing fields.
+
+The fields must appear in this order:
+
+1. `Front`
+2. `Back`
+3. `FrontSpeech`
+4. `BackSpeech`
+
+The field names are case-sensitive.
+
+For regex flashcards, the order matters because the first two regex capture groups are assigned to `Front` and `Back`.
+
+**Step 2: Update Obsidian_to_Anki_Kai**
+
+1. Open the Obsidian_to_Anki_Kai plugin settings in Obsidian.
+2. Regenerate the **Note Type Table** so the plugin recognizes `Basic (TTS)`.
+3. For regex flashcards, configure the appropriate regex under the `Basic (TTS)` note type.
+
+Regular and inline flashcards can specify `Basic (TTS)` directly in their syntax.
+
+#### Configuring Anki's Built-in TTS
+
+The `Basic (TTS)` note type needs card templates that read the speech fields when populated and fall back to the visible fields otherwise.
+
+In Anki, open the **Cards** editor for `Basic (TTS)`.
+
+**Front Template**
+
+```html
+{{Front}}
+
+{{#FrontSpeech}}
+{{tts en_US:FrontSpeech}}
+{{/FrontSpeech}}
+
+{{^FrontSpeech}}
+{{tts en_US:Front}}
+{{/FrontSpeech}}
+```
+
+**Back Template**
+
+```html
+{{FrontSide}}
+
+<hr id="answer">
+
+{{Back}}
+
+{{#BackSpeech}}
+{{tts en_US:BackSpeech}}
+{{/BackSpeech}}
+
+{{^BackSpeech}}
+{{tts en_US:Back}}
+{{/BackSpeech}}
+```
+
+These templates use Anki's built-in conditional field replacements:
+
+- `{{#FrontSpeech}}` displays its contents only when `FrontSpeech` is not empty.
+- `{{^FrontSpeech}}` displays its contents only when `FrontSpeech` is empty.
+- The same logic applies to `BackSpeech`.
+
+Consequently, Anki reads:
+
+| Field | When an override exists | When no override exists |
+|---|---|---|
+| Front | `FrontSpeech` | `Front` |
+| Back | `BackSpeech` | `Back` |
+
+The visible card always uses `Front` and `Back`, preserving formatting such as **bold**, *italic*, and `inline code`.
+
+The templates above use English (US) TTS (`en_US`). You can change this to another supported Anki TTS language or voice.
+
+#### Flashcards Without TTS Overrides
+
+You do not need to provide pronunciation text for every flashcard.
+
+For example:
+
+```markdown
+START
+Basic (TTS)
+Front: What is a Git branch?
+Back: A movable pointer to a commit.
+END
+```
+
+The plugin leaves `FrontSpeech` and `BackSpeech` empty.
+
+With the card templates configured above, Anki automatically reads the visible `Front` and `Back` fields instead.
+
+You can also override only one side:
+
+```markdown
+START
+Basic (TTS)
+Front: What does the `-v` flag mean? %%tts: What does the dash vee flag mean?%%
+Back: Verbose.
+END
+```
+
+In this case, Anki reads the custom pronunciation for the front and the normal answer text for the back.
+
+#### Limitations
+
+- TTS overrides are supported for regular, regex, and inline flashcards.
+- Each visible field supports one single-line `%%tts: ...%%` annotation.
+- Multiline TTS overrides are not currently supported.
+- The note type must contain the corresponding `FrontSpeech` and `BackSpeech` fields.
+- The speech field names are case-sensitive.
+- Speech overrides are stored as plain text rather than being converted from Markdown to HTML.
+- TTS playback requires an appropriately configured Anki card template.
+- Inline flashcards require their existing `STARTI` / `ENDI` syntax, and their field parser uses space-separated field labels.
+
 ### Save Note ID to Frontmatter (Experimental)
 
 Allows saving the Anki Note ID (`nid`) in the Obsidian Frontmatter (YAML Properties) instead of as an inline comment or block ID.
